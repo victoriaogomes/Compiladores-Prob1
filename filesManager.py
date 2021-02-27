@@ -24,7 +24,8 @@ def ler_tudo():
 
 
 def ler_linha():
-    print('Linha lida:', file.readline(), end='')   # readLine lê uma linha por vez | end='' retira o \n no final
+    return file.readline()
+    # print('Linha lida:', file.readline(), end='')   # readLine lê uma linha por vez | end='' retira o \n no final
 
 
 def soma(a, b):                                     # Testando o retorno de parâmetros em python
@@ -40,8 +41,13 @@ def remove_output():                                # Metodo de remover os arqui
             os.remove(caminho)
 
 
+def ler_char():
+    return file.read(1)
+
+
 file = open('output\\saida01.txt', 'w+')    # Abre o arquivo com o caminho dado
 lista_arquivos('input')                     # w = write, r = read, a = append,
+'''
 escrever_arquivos()                         # + = deixa atualizar (por algum motivo deixa ler e escrever junto)
 ler_tudo()
 ler_linha()
@@ -49,3 +55,5 @@ ler_linha()
 file.readlines()                            # Retorna as linhas em um vetor (interessante)
 print('\nSoma igual a:', soma(77, 33))
 file.close()                                # Sempre fechar o arquivo quando abrir para não ter erro
+'''
+
