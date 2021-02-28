@@ -1,40 +1,22 @@
-def mensagemErro(numero):
-    print('\nErro na léxico no caractere de numero:', numero)
+import re
+import filesManager
 
+filesManager.abrir_arquivo('input\\teste.txt')
 
-with open('input\\teste.txt', 'r+') as file:
-    c = file.read(1)
-    count = 1
+while True:
+    c = filesManager.ler_char()
+    if not c:
+        break
     if c == '\"':
-        print(c, end='')
-        c = file.read(1)
-        count = count + 1
-        stop = 1
-        while stop == 1:
-            if c == '\"':
-                print(c, end='')
-                count = count + 1
-                c = file.read(1)
-                if c:
-                    mensagemErro(count)
-                stop = 0
-                break
-            elif c == '\\':
-                if c >= '\x7e':
-                    stop = 0
-                    mensagemErro(count)
+        while True:
+            c += filesManager.ler_char()
+            if c[-1] == '\"':
+                if c[len(c) - 2] != '\\':
                     break
-                else:
-                    c = file.read(1)
-                    count = count + 1
-                    print('\\', c, end='')
-                    c = file.read(1)
-                    count = count + 1
-            elif c >= '\x7e':
-                stop = 0
-                mensagemErro(count)
-                break
-            else:
-                print(c, end='')
-                c = file.read(1)
-                count = count + 1
+        match = re.search(r"^\"([a-z]|[A-Z]|[0-9]|[\s]|[\x20-\x21]|[\x23-\x7e]|(\\\"))*\"$", c)
+        if not match:
+            print('erro léxico')
+        else:
+            print(c)
+
+filesManager.fechar_arquivo()
