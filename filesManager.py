@@ -2,9 +2,17 @@ from os import listdir
 from os.path import isfile, join
 
 
-def ler_char(path):
-    with open(path, 'r+') as file:
-        return file.read(1)
+def ler_char():
+    return file.read(1)
+
+
+def abrir_arquivo(path):
+    global file
+    file = open(path, 'r+')
+
+
+def fechar_arquivo():
+    file.close()
 
 
 def escrever(mensagem, path):
@@ -12,7 +20,7 @@ def escrever(mensagem, path):
         file.write(mensagem)
 
 
-def retorna_linhas(path):                                       # Retorna um vetor com as linhas da arquivo
+def retorna_linhas(path):                                        # Retorna um vetor com as linhas da arquivo
     with open(path, 'r+') as file:
         return file.readlines()
 
@@ -23,3 +31,4 @@ def lista_arquivos(path):                                        # Caminho do di
     print('O directório possui:', len(files), 'arquivos')        # len() retorn o tamanho do array
     print('#############################')
     return files
+
