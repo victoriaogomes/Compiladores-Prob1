@@ -32,3 +32,7 @@ def lista_arquivos(path):                                        # Caminho do di
     print('O directório possui:', len(files), 'arquivos')        # len() retorn o tamanho do array
     print('#############################')
     return files
+
+
+def voltar_cursor():
+    file.seek(file.tell() - 1)
