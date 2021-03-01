@@ -19,9 +19,9 @@ def identificar_lexemas():
         if c == '\"':
             cadeiaCaracteres.identificar(filesManager)
         elif re.search(r"[a-z]|[A-Z]", c):
-            identificadores.identificar(filesManager)
+            identificadores.identificar(filesManager, c)
         elif re.search(r"[0-9]", c):
-            numeros.identificar(filesManager)
+            numeros.identificar(filesManager, c)
         elif c == '+' or c == '-' or c == '*' or c == '/':   #### REVER POR CONTA DA BARRA
             operadores_aritmeticos.identificar(filesManager)
         elif c == '!':

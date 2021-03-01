@@ -2,19 +2,30 @@ import re
 
 import filesManager
 
-def identificar(files_manager):
+def identificar(files_manager, c):
+    12bruno3.45
+    numero = c
+    ponto = 0
     while True:
-        c = filesManager.ler_char()
-        if not c:
+        d = files_manager.ler_char()
+        if not d:
             break
-        if c == '\"':
-            while True:
-                c += filesManager.ler_char()
-                if c[-1] == '\"':
-                    if c[len(c) - 2] != '\\':
-                        break
-            match = re.search(r"^\"(\w|[\s]|[\x20-\x21]|[\x23-\x7e]|(\\\"))*\"$", c)
-            if not match:
-                print('erro léxico')
+        elif d == '.':
+            if ponto == 0:
+                numero += d
+                ponto = 1
             else:
-                print(c)
+                break
+        elif re.serch(r"[0-9]", d):
+            palavra += d
+        else:
+            files_manager.voltar_cursor()
+            break
+    match = re.serch(r"(\d)+(.\d+)?", numero)
+    if not match:
+        print('Erro Léxico')
+        # Add tabela como erro
+    else:
+        print("Numero encontrado:", numero)
+        # Add tabela como número
+
