@@ -1,19 +1,36 @@
-import re
+def mensagemErro(numero):
+    print('\nErro na léxico no caractere de numero:', numero)
 
 
 def identificar(files_manager, c):
-    cadeia_caracteres = c
-    while True:
-        d = files_manager.ler_char()
-        if not d:
-            break
-        else:
-            cadeia_caracteres += d
-        if cadeia_caracteres[-1] == '\"':
-            if cadeia_caracteres[len(cadeia_caracteres) - 2] != '\\':
+    count = 1
+    if c == '\"':
+        print(c, end='')
+        c = files_manager.ler_char()
+        count = count + 1
+        while True:
+            if c == '\"':
+                print(c, end='')
+                count = count + 1
+                c = files_manager.ler_char()
+                if c:
+                    mensagemErro(count)
                 break
-    match = re.search(r"^\"(\w|[\s]|[\x20-\x21]|[\x23-\x7e]|(\\\"))*\"$", cadeia_caracteres)
-    if not match:
-        print('erro léxico')
-    else:
-        print(cadeia_caracteres)
+            elif c == '\\':
+                if c >= '\x7e':
+                    mensagemErro(count)
+                    break
+                else:
+                    c = files_manager.ler_char()
+                    count = count + 1
+                    print('\\', c, end='')
+                    c = files_manager.ler_char()
+                    count = count + 1
+            elif c >= '\x7e':
+                mensagemErro(count)
+                break
+            else:
+                print(c, end='')
+                c = files_manager.ler_char()
+                count = count + 1
+

@@ -17,7 +17,7 @@ def identificar_lexemas():
         if not c:
             break
         if c == '\"':
-            cadeiaCaracteres.identificar(filesManager)
+            cadeiaCaracteres.identificar(filesManager, c)
         elif re.search(r"[a-z]|[A-Z]", c):
             identificadores.identificar(filesManager, c)
         elif re.search(r"[0-9]", c):
