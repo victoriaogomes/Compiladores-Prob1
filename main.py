@@ -1,16 +1,18 @@
 import filesManager
 import cadeiaCaracteres
-import identificadores
-import operadores_aritmeticos
-import numeros
-import re
-
-lista_arquivos = filesManager.lista_arquivos('input')
-
-for arquivo in lista_arquivos:
-    filesManager.abrir_arquivo('input\\' + arquivo)
 
 
+#lista_arquivos = filesManager.lista_arquivos('input')
+
+
+#for arquivo in lista_arquivos:
+#    filesManager.abrir_arquivo('input\\' + arquivo)
+filesManager.abrir_arquivo('input\\teste.txt')
+c = filesManager.ler_char()
+if c == '\"':
+    cadeiaCaracteres.identificar(filesManager, c)
+filesManager.fechar_arquivo()
+'''
 def identificar_lexemas():
     while True:
         c = filesManager.ler_char()
@@ -37,3 +39,4 @@ def identificar_lexemas():
             # Vai pra operador relacional
         elif c == ';' or c == ',' or c == '(' or c == ')' or c == '[' or c == ']' or c == '{' or c == '}' or c == '.':
             # Vai para delimitador
+'''

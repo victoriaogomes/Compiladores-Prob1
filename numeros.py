@@ -1,31 +1,24 @@
-import re
-
 import filesManager
+import validator as v
 
 def identificar(files_manager, c):
-    12bruno3.45
     numero = c
-    ponto = 0
+    count = 1
+    pontos = 0
     while True:
-        d = files_manager.ler_char()
-        if not d:
+        c = files_manager.ler_char()
+        count + count + 1
+        if(c == '.'):
+            numero += c
+            pontos += 1
+        elif v.is_delimiter(c) or v.is_logic_operator(c) or v.is_arithmetic_operator(c) or v.is_relacional_operator(c) or c == ' ':
+            # TODO: adicionar tokens na tabela de simbolos
+            files_manager.go_back()
+            print('Numero lido:', numero)
             break
-        elif d == '.':
-            if ponto == 0:
-                numero += d
-                ponto = 1
-            else:
-                break
-        elif re.serch(r"[0-9]", d):
-            palavra += d
         else:
-            files_manager.voltar_cursor()
-            break
-    match = re.serch(r"(\d)+(.\d+)?", numero)
-    if not match:
-        print('Erro Léxico')
-        # Add tabela como erro
-    else:
-        print("Numero encontrado:", numero)
-        # Add tabela como número
+            numero += c
+
+
+
 

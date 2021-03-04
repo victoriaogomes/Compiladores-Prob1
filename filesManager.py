@@ -34,5 +34,5 @@ def lista_arquivos(path):                                        # Caminho do di
     return files
 
 
-def voltar_cursor():
+def go_back():
     file.seek(file.tell() - 1)

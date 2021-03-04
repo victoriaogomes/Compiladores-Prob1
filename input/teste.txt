@@ -1,2 +1,2 @@
-int "esse sorvete, #@ \" tem um gosto incrivel!"
+"esse sorvete, #@ \" tem um gosto incrivel!"
 "esse sorvete, #@ \"  aaaaaaaaaaa!"
