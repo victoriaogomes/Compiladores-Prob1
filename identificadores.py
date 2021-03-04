@@ -1,61 +1,41 @@
+import validator as v
+
 def mensagemErro(numero):
     print('\nErro na léxico no caractere de numero:', numero)
 
 
-def identificar(files_manager, c):
-    count = 1
-    if c == '\"':
-        print(c, end='')
+def identify(files_manager, c):
+    word = c
+    error = False
+    while True:
         c = files_manager.ler_char()
-        count = count + 1
-        while True:
-            if c == '\"':
-                print(c, end='')
-                count = count + 1
-                c = files_manager.ler_char()
-                if c:
-                    mensagemErro(count)
-                break
-            elif c == '\\':
-                if c >= '\x7e':
-                    mensagemErro(count)
-                    break
-                else:
-                    c = files_manager.ler_char()
-                    count = count + 1
-                    print('\\', c, end='')
-                    c = files_manager.ler_char()
-                    count = count + 1
-            elif c >= '\x7e':
-                mensagemErro(count)
-                break
-            else:
-                print(c, end='')
-                c = files_manager.ler_char()
-                count = count + 1
+        if v.is_delimiter(c) or v.is_logic_operator(c) or v.is_arithmetic_operator(c) or v.is_relacional_operator(c) or c == ' ':
+            break
+        else:
+            word += c
+        error = check_indentifier(c)
+    if error:
+        # TODO: adicionar erro léxico de identificador na tabela de simbolos
+        print("Erro no token:", word)
+    else:
+        if is_keyword():
+            # TODO: adicionar palavra reservada lida corretamente na tabela de simbolos
+            print('Palavra reservada lida corretamente:', word)
+        else:
+            # TODO: adicionar identificador lido corretamente na tabela de simbolos
+            print('Identificador lido corretamente:', word)
+    files_manager.go_back()
 
 
-# def identificar(files_manager, c):
-#     palavra = c
-#     while True:
-#         d = files_manager.ler_char()
-#         if not d:
-#             break
-#         if re.search(r"[a-z]|[A-Z]|_", d):
-#             palavra += d
-#         else:
-#             files_manager.voltar_cursor()
-#             break
-#     match = re.search(r"var|const|typedef|struct|extends|procedure|function|start|return|if|else|"
-#                       r"then|while|read|print|int|real|boolean|string|true|false|global|local", palavra)
-#     if not match:
-#         match = re.search(r"^([a-z]|[A-Z])(\w)*", palavra)
-#         if not match:
-#             print("Erro léxico Encontrado")
-#             # fazer tratamento do erro
-#         else:
-#             print('Identificador:', palavra)
-#             # add na tabela como identificador
-#     else:
-#         print('Palavra reservada:', palavra)
-#         # add na tabela como palavra reservada
+def check_indentifier(c):
+    if not c.isdigit() or v.is_char(c) or c == '_':
+        return True
+    else:
+        return False
+
+
+def is_keyword(word):
+    keywords = ['var','const','typedef','struct', 'extends', 'procedure', 'function', 'start',
+                'return', 'if', 'else','then', 'while', 'read', 'print', 'int', 'real', 'boolean',
+                'string', 'true', 'false', 'global', 'local']
+    return word in keywords
