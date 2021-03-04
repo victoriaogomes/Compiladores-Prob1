@@ -1,5 +1,6 @@
 import filesManager
-import cadeiaCaracteres
+#import cadeiaCaracteres
+import numbers
 
 
 #lista_arquivos = filesManager.lista_arquivos('input')
@@ -9,8 +10,8 @@ import cadeiaCaracteres
 #    filesManager.abrir_arquivo('input\\' + arquivo)
 filesManager.abrir_arquivo('input\\teste.txt')
 c = filesManager.ler_char()
-if c == '\"':
-    cadeiaCaracteres.identificar(filesManager, c)
+if c.isdigit():
+    numbers.identify(filesManager, c)
 filesManager.fechar_arquivo()
 '''
 def identificar_lexemas():
