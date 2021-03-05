@@ -4,7 +4,12 @@ import validator as v
 import identifiers
 import numbers
 import arithmetic_operators
+import relational_operators
+import logic_operators
+import delimitador
 
+
+print('################## Welcome to Unicorn.io ###################')
 lista_arquivos = filesManager.list_files('input')
 
 
@@ -30,14 +35,19 @@ def identify_lexemes():
             d = filesManager.read_char()
             filesManager.go_back()
             if d == '=':
+                relational_operators.identify(filesManager, c)
                 # Vai pra operador relacional
             else:
+                logic_operators.identify(filesManager, c)
                 # Vai pra operador lógico
         elif c == '&' or c == '|':
+            logic_operators.identify(filesManager, c)
             # Vai pra operador lógico
         elif c == '=' or c == '>' or c == '>':
+            relational_operators.identify(filesManager, c)
             # Vai pra operador relacional
         elif c == ';' or c == ',' or c == '(' or c == ')' or c == '[' or c == ']' or c == '{' or c == '}' or c == '.':
+            delimitador.add_table(filesManager, c)
             # Vai para delimitador
 
 
