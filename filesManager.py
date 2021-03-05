@@ -21,12 +21,12 @@ def write(mensagem, path):
         archive.write(mensagem)
 
 
-def return_lines(path):                                        # Retorna um vetor com as linhas da arquivo
+def return_lines(path):                                          # Retorna um vetor com as linhas da arquivo
     with open(path, 'r+') as archive:
         return archive.readlines()
 
 
-def list_files(path):                                        # Caminho do diretório que será analisado
+def list_files(path):                                            # Caminho do diretório que será analisado
     files = [f for f in listdir(path) if isfile(join(path, f))]  # Não faço idéia do que ele está fazendo aqui
     print(files)                                                 # Printa os arquivos no diretório que foi passado
     print('O directório possui:', len(files), 'arquivos')        # len() retorn o tamanho do array

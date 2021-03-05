@@ -26,7 +26,7 @@ def identify(files_manager, c):
 
 
 def check_number(c, dots, error):
-    if not c.isdigit() or dots > 1:
+    if not c.isdigit() and not c == '.' or dots > 1:
         return True
     else:
         return error

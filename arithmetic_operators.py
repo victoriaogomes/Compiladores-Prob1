@@ -8,7 +8,7 @@ def identify(files_manager, c):
         c = files_manager.read_char()
         if not c:
             break
-        if v.is_delimiter(c) or c == ' ' or v.is_char(c) or c == '\n':
+        if v.is_arithmetic_delimiter(c) or c == ' ' or v.is_char(c) or c == '\n':
             files_manager.go_back()
             break
         else:

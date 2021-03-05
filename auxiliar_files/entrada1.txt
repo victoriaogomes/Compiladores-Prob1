@@ -1,0 +1,4 @@
+"oi à testando"
+oi + tchau                
+oi + 92.5
+123a

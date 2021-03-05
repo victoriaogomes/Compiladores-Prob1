@@ -1,4 +1,7 @@
 "oi à testando"
-oi + tchau
+oi + tchau                // isso é uma comentário de linha
+/* ####################
+Isso é um comentário de bloco
+   ####################*/
 oi + 92.5
 123a

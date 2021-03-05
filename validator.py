@@ -7,6 +7,13 @@ def is_delimiter_special(c):
         return False
 
 
+def is_arithmetic_delimiter(c):
+    if c == '(' or c == ')' or c == ';' or c == ',':
+        return True
+    else:
+        return False
+
+
 def is_delimiter(c):
     if c == '(' or c == ')' or c == '{' or c == '}' or c == '[' or c == ']' or c == ';' or c == ',' or c == '.':
         return True

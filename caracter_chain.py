@@ -2,7 +2,6 @@ import validator as v
 
 
 def identify(files_manager, c):
-    print('Verificando a craseado:', ord('à'))
     error = False
     caracteres = c
     while True:
