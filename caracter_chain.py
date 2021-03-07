@@ -1,7 +1,7 @@
 import validator as v
 
 
-def identify(files_manager, c):
+def identify(files_manager, c, line, symbol_table):
     error = False
     caracteres = c
     while True:
@@ -16,10 +16,10 @@ def identify(files_manager, c):
             error = check_chain(c, error)
     if error:
         # TODO: Adicionar erro léxico na identificação de caracteres
-        print('Erro na identificação de cadeia de caracteres:', caracteres)
+        symbol_table.add_lexeme('CMF', caracteres, line)
     else:
         # TODO: Adicionar cadeia de caracteres na tabela de símbolos
-        print('Cadeia de caracteres lida corretamente:', caracteres)
+        symbol_table.add_lexeme('CAD', caracteres, line)
 
 
 def check_chain(c, error):

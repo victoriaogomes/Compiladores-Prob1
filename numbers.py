@@ -1,7 +1,7 @@
 import validator as v
 
 
-def identify(files_manager, c):
+def identify(files_manager, c, line, symbol_table):
     error = False
     number = c
     dots = 0
@@ -18,11 +18,9 @@ def identify(files_manager, c):
         number += c
         error = check_number(c, dots, error)
     if error:
-        # TODO: adicionar erro léxico de número na tabela de simbolos
-        print("Erro no token:", number)
+        symbol_table.add_lexeme('NMF', number, line)
     else:
-        # TODO: adicionar número lido corretamente na tabela de simbolos
-        print('Número lido corretamente:', number)
+        symbol_table.add_lexeme('NRO', number, line)
 
 
 def check_number(c, dots, error):

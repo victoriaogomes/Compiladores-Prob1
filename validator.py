@@ -1,5 +1,6 @@
 import re
 
+
 def is_delimiter_special(c):
     if c == '(' or c == ')' or c == '{' or c == '}' or c == '[' or c == ']':
         return True
@@ -19,7 +20,6 @@ def is_delimiter(c):
         return True
     else:
         return False
-
 
 
 def is_char(c):
@@ -48,5 +48,3 @@ def is_relacional_operator(c):
         return True
     else:
         return False
-
-

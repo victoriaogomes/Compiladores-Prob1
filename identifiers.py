@@ -1,13 +1,11 @@
 import validator as v
 
 
-def mensagemErro(numero):
-    print('\nErro na léxico no caractere de numero:', numero)
-
-
-def identify(files_manager, c):
+def identify(files_manager, c, line, symbol_table):
     word = c
     error = False
+    if not v.is_char(c):
+        error = True
     while True:
         c = files_manager.read_char()
         if not c:
@@ -21,15 +19,12 @@ def identify(files_manager, c):
             word += c
         error = check_indentifier(c, error)
     if error:
-        # TODO: adicionar erro léxico de identificador na tabela de simbolos
-        print("Erro no token:", word)
+        symbol_table.add_lexeme('SIB', word, line)
     else:
         if is_keyword(word):
-            # TODO: adicionar palavra reservada lida corretamente na tabela de simbolos
-            print('Palavra reservada lida corretamente:', word)
+            symbol_table.add_lexeme('PRE', word, line)
         else:
-            # TODO: adicionar identificador lido corretamente na tabela de simbolos
-            print('Identificador lido corretamente:', word)
+            symbol_table.add_lexeme('IDE', word, line)
 
 
 def check_indentifier(c, error):

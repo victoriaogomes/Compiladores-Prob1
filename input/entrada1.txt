@@ -1,7 +1,6 @@
-"oi à testando"
-oi + tchau                // isso é uma comentário de linha
-/* ####################
-Isso é um comentário de bloco
-   ####################*/
-oi + 92.5
-123a
+else{
+    system("cls");
+    printf("\n\t\t\tDados insuficientes para emissao de relatorio. Tente novamente mais tarde!\n\n\n\n");
+    printf("\n\n\nTecle 1 para retornar ao menu inicial.\n");
+    scanf("%d", &opcao);
+}

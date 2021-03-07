@@ -1,25 +1,23 @@
 import validator as v
 
 
-def identify(files_manager, c):
+def identify(files_manager, c, line, symbol_table):
     error = False
     operator = c
     while True:
         c = files_manager.read_char()
         if not c:
             break
-        if v.is_arithmetic_delimiter(c) or c == ' ' or v.is_char(c) or c == '\n':
+        if v.is_arithmetic_delimiter(c) or c == ' ' or v.is_char(c) or c == '\n' or c.isdigit():
             files_manager.go_back()
             break
         else:
             operator += c
     error = check_operator(operator, error)
     if error:
-        # TODO: adicionar erro léxico de operador aritmético
-        print('Erro léxico no operador aritmético:', operator)
+        symbol_table.add_lexeme('OpMF', operator, line)
     else:
-        # TODO: adicionar token de operador aritmético na tabela de simbolos
-        print('Operador aritmético:', operator)
+        symbol_table.add_lexeme('ART', operator, line)
 
 
 def check_operator(op, error):
