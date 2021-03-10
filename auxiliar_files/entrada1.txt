@@ -1,6 +1,9 @@
-else{
+void main (string args){
     system("cls");
-    printf("\n\t\t\tDados insuficientes para emissao de relatorio. Tente novamente mais tarde!\n\n\n\n");
     printf("\n\n\nTecle 1 para retornar ao menu inicial.\n");
-    scanf("%d", &opcao);
+    int a = 2;
+    int b = 5;
+    if(a < b){
+        print(a + b);
+    }
 }

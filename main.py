@@ -56,7 +56,7 @@ def identify_lexemes(arquivo, symbol_table):
         elif not c == ' ':
             print('--- Entrou na identificação de identificador')
             identifiers.identify(filesManager, c, line, symbol_table)
-    filesManager.write_symbol_table(symbol_table.printable, arquivo)
+    filesManager.write_symbol_table(symbol_table.get_token(), arquivo)
 
 
 def clear_comments(file, symbol_table):

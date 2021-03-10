@@ -8,6 +8,10 @@ def identify(files_manager, c, line, symbol_table):
         c = files_manager.read_char()
         if not c:
             break
+        if c == '\n':
+            error = True
+            files_manager.go_back()
+            break
         if c == '\"' and caracteres[-1] != '\\':
             caracteres += c
             break
@@ -15,10 +19,8 @@ def identify(files_manager, c, line, symbol_table):
             caracteres += c
             error = check_chain(c, error)
     if error:
-        # TODO: Adicionar erro léxico na identificação de caracteres
         symbol_table.add_lexeme('CMF', caracteres, line)
     else:
-        # TODO: Adicionar cadeia de caracteres na tabela de símbolos
         symbol_table.add_lexeme('CAD', caracteres, line)
 
 
