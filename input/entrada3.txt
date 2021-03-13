@@ -1,0 +1,10 @@
+// Bruno Vogel
+while(true){
+  print("hello world)
+  int s = 869;;
+int a = 869#;
+}
+
+/* that’s it, have a good year
+
+:D

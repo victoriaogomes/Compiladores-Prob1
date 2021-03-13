@@ -53,7 +53,7 @@ def identify_lexemes(arquivo, symbol_table):
             delimitador.add_table(line, c, symbol_table)
             # Vai para delimitador
         # elif v.is_char(c) or c == '_':
-        elif not c == ' ':
+        elif not c == ' ' and not c == '\t':
             print('--- Entrou na identificação de identificador')
             identifiers.identify(filesManager, c, line, symbol_table)
     filesManager.write_symbol_table(symbol_table.get_token(), arquivo)
@@ -71,7 +71,12 @@ def clear_comments(file, symbol_table):
         if c == '/':
             c = filesManager.read_char()
             if c == '/':
-                while c != '\n':
+                while True:
+                    if c == '\n':
+                        filesManager.go_back()
+                        break
+                    if not c:
+                        break
                     c = filesManager.read_char()
                 line += 1
             elif c == '*':
@@ -80,6 +85,7 @@ def clear_comments(file, symbol_table):
                 d = filesManager.read_char()
                 while c != '*' and d != '/':
                     if c == '\n':
+                        mensagem += '\n'
                         line += 1
                     c = d
                     d = filesManager.read_char()

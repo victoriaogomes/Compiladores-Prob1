@@ -13,6 +13,7 @@ def identify(files_manager, c, line, symbol_table):
             dots += 1
         elif v.is_delimiter(c) or v.is_logic_operator(c) or v.is_arithmetic_operator(c) or v.is_relacional_operator(
                 c) or c == ' ' or c == '\n':
+            print('Recebi: ', c)
             files_manager.go_back()
             break
         number += c

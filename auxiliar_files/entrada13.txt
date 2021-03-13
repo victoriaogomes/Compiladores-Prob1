@@ -1,0 +1,22 @@
+
+start
+
+string nome = ("João");
+int idade = (21);
+string teste01;
+string teste02;
+
+
+
+function teste () {
+print(nome, idade);
+
+print(idade+5);
+
+
+
+
+
+}
+
+end

@@ -1,0 +1,12 @@
+
+function doNothing(number)
+{
+	var year = 2021;
+	var result =  year + 15;
+
+	if( 80<=20){
+
+}
+
+
+}

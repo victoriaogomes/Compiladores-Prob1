@@ -1,0 +1,26 @@
+2 SIB #
+3 SIB $
+5 PRE if
+5 DEL (
+5 IDE a
+5 REL <
+5 NRO 10
+5 OpMF &
+5 IDE b
+5 REL >
+5 IDE a
+5 OpMF |
+5 IDE a
+5 REL !=
+5 IDE b
+5 DEL )
+7 IDE str
+7 REL =
+7 CMF "string;
+8 IDE num1
+8 REL =
+8 NMF 12.a
+10 IDE num2
+10 REL =
+10 NRO 10
+12 CoMF Fim de arquivo inesperado
