@@ -7,14 +7,9 @@
 3 DEL (
 3 CMF "hello world)
 4 PRE int
-4 IDE s
+4 IDE a
 4 REL =
-4 NRO 869
+4 NMF 869#
 4 DEL ;
-4 DEL ;
-5 PRE int
-5 IDE a
-5 REL =
-5 NMF 869#
-7 DEL }
-9 CoMF Fim de arquivo inesperado
+5 DEL }
+8 CoMF Fim de arquivo inesperado

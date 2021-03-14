@@ -3,8 +3,12 @@ from os.path import isfile, join
 import re
 import os
 
+previousPos = 0
+
 
 def read_char():
+    global previousPos
+    previousPos = file.tell()
     return file.read(1)
 
 
@@ -37,7 +41,7 @@ def list_files(path):  # Caminho do diretório que será analisado
 
 
 def go_back():
-    file.seek(file.tell() - 1)
+    file.seek(previousPos)
 
 
 def write_symbol_table(message, filename):

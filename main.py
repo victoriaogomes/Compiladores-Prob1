@@ -1,7 +1,7 @@
 import filesManager
 import caracter_chain
 import identifiers
-import numbers
+import number
 import arithmetic_operators
 import relational_operators
 import logic_operators
@@ -30,7 +30,7 @@ def identify_lexemes(arquivo, symbol_table):
             caracter_chain.identify(filesManager, c, line, symbol_table)
         elif c.isdigit():
             print('--- Entrou na identificação de número')
-            numbers.identify(filesManager, c, line, symbol_table)
+            number.identify(filesManager, c, line, symbol_table)
         elif c == '+' or c == '-' or c == '*' or c == '/':
             print('--- Entrou na identificação de operador aritmético')
             arithmetic_operators.identify(filesManager, c, line, symbol_table)
