@@ -19,9 +19,9 @@ def identify(files_manager, c, line, symbol_table):
             caracteres += c
             error = check_chain(c, error)
     if error:
-        symbol_table.add_lexeme('CMF', caracteres, line)
+        symbol_table.add_token('CMF', caracteres, line)
     else:
-        symbol_table.add_lexeme('CAD', caracteres, line)
+        symbol_table.add_token('CAD', caracteres, line)
 
 
 def check_chain(c, error):

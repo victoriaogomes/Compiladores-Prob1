@@ -18,12 +18,12 @@ def identify(files_manager, c, line, symbol_table):
             word += c
         error = check_indentifier(c, error)
     if error:
-        symbol_table.add_lexeme('SIB', word, line)
+        symbol_table.add_token('SIB', word, line)
     else:
         if is_keyword(word):
-            symbol_table.add_lexeme('PRE', word, line)
+            symbol_table.add_token('PRE', word, line)
         else:
-            symbol_table.add_lexeme('IDE', word, line)
+            symbol_table.add_token('IDE', word, line)
 
 
 def check_indentifier(c, error):

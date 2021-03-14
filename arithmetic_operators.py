@@ -15,9 +15,9 @@ def identify(files_manager, c, line, symbol_table):
             operator += c
     error = check_operator(operator, error)
     if error:
-        symbol_table.add_lexeme('OpMF', operator, line)
+        symbol_table.add_token('OpMF', operator, line)
     else:
-        symbol_table.add_lexeme('ART', operator, line)
+        symbol_table.add_token('ART', operator, line)
 
 
 def check_operator(op, error):
