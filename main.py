@@ -21,18 +21,18 @@ def identify_lexemes(arquivo, symbol_table):
     while True:
         c = filesManager.read_char()
         if not c:
-            print('Fim de arquivo main')
+            # Fim de arquivo
             break
         if c == '\n':
             line = line + 1
         elif c == '\"':
-            print('--- Entrou na identificação de cadeia de caracteres')
+            # --- Identificação de cadeia de caracteres
             caracter_chain.identify(filesManager, c, line, symbol_table)
         elif c.isdigit():
-            print('--- Entrou na identificação de número')
+            # --- Identificação de número
             number.identify(filesManager, c, line, symbol_table)
         elif c == '+' or c == '-' or c == '*' or c == '/':
-            print('--- Entrou na identificação de operador aritmético')
+            # --- Identificação de operador aritmético
             arithmetic_operators.identify(filesManager, c, line, symbol_table)
         elif c == '!':
             d = filesManager.read_char()
@@ -54,7 +54,7 @@ def identify_lexemes(arquivo, symbol_table):
             # Vai para delimitador
         # elif v.is_char(c) or c == '_':
         elif not c == ' ' and not c == '\t':
-            print('--- Entrou na identificação de identificador')
+            # --- Identificação de identificador
             identifiers.identify(filesManager, c, line, symbol_table)
     filesManager.write_symbol_table(symbol_table.get_token(), arquivo)
 
@@ -69,6 +69,7 @@ def clear_comments(file, symbol_table):
         if c == '\n':
             line += 1
         if c == '/':
+            acd = c
             c = filesManager.read_char()
             if c == '/':
                 while True:
@@ -78,7 +79,7 @@ def clear_comments(file, symbol_table):
                     if not c:
                         break
                     c = filesManager.read_char()
-                line += 1
+               # line += 1
             elif c == '*':
                 comentario_line = line
                 c = filesManager.read_char()
@@ -93,6 +94,8 @@ def clear_comments(file, symbol_table):
                         symbol_table.add_lexeme('CoMF', 'Fim de arquivo inesperado', comentario_line)
                         break
             else:
+                if acd == '/':
+                    mensagem += acd
                 mensagem += c
         else:
             mensagem += c
@@ -114,3 +117,5 @@ for arquivo in lista_arquivos:
     filesManager.open_file('auxiliar_files\\' + arquivo)
     identify_lexemes(arquivo, tableList[count])
     count += 1
+filesManager.close_file()
+filesManager.clean_folder('auxiliar_files')

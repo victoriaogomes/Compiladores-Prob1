@@ -12,4 +12,4 @@
 4 NMF 869#
 4 DEL ;
 5 DEL }
-8 CoMF Fim de arquivo inesperado
+7 CoMF Fim de arquivo inesperado

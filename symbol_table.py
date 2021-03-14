@@ -11,7 +11,6 @@ class SymbolTable:
 
     def add_lexeme(self, lexeme_type, lexeme_text, line):
         self.symbol_table[self.token_number] = lexeme.Lexeme(lexeme_type, lexeme_text, line)
-        print(self.symbol_table[self.token_number])
         self.token_number = self.token_number + 1
 
     def get_token(self):

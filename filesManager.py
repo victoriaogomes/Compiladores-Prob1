@@ -34,9 +34,6 @@ def return_lines(path):  # Retorna um vetor com as linhas da arquivo
 
 def list_files(path):  # Caminho do diretório que será analisado
     files = [f for f in listdir(path) if isfile(join(path, f))]  # Não faço idéia do que ele está fazendo aqui
-    print(files)  # Printa os arquivos no diretório que foi passado
-    print('O diretório possui:', len(files), 'arquivos')  # len() retorn o tamanho do array
-    print('#############################')
     return files
 
 

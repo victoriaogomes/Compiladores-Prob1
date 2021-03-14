@@ -9,7 +9,6 @@ def identify(files_manager, c, line, symbol_table):
     while True:
         c = files_manager.read_char()
         if not c:
-            print('Fim de arquivo identificador')
             break
         if v.is_delimiter(c) or v.is_logic_operator(c) or v.is_arithmetic_operator(c) or v.is_relacional_operator(
                 c) or c == ' ' or c == '\n':
