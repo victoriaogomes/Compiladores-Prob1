@@ -19,6 +19,7 @@ def identify(files_manager, c, line, symbol_table):
         symbol_table.add_token('OpMF', operator, line)       # Add na tabela como operador mal formado.
     else:                                                    # Caso contrário.
         symbol_table.add_token('LOG', operator, line)        # Add na tabela como operador lógico.
+    return error
 
 
 def check_logic(op, error):                                  # Verifica se o operador lógico foi construído certo.

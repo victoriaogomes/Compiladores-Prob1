@@ -28,6 +28,7 @@ def identify(files_manager, c, line, symbol_table):
         symbol_table.add_token('NMF', number, line)
     else:             # Adiciona na tabela de símbolos um token indicando a presença de um número
         symbol_table.add_token('NRO', number, line)
+    return error
 
 
 def check_number(c, dots, error):

@@ -26,6 +26,7 @@ def identify(files_manager, c, line, symbol_table):
         symbol_table.add_token('OpMF', operator, line)
     else:          # Adiciona na tabela de símbolos um token indicando a presença de um operador relacional
         symbol_table.add_token('REL', operator, line)
+    return error
 
 
 def check_relation(op, error):

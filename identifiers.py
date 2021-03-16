@@ -25,6 +25,7 @@ def identify(files_manager, c, line, symbol_table):
             symbol_table.add_token('PRE', word, line)  # Se for, é adicionado na tabela como palavra reservada
         else:                                          # Se não for palavra reservada
             symbol_table.add_token('IDE', word, line)  # É adicionado como na tabela como identificador
+    return error
 
 
 def check_indentifier(c, error):                    # Verifica se o caractere recebebido é permitido nesses lexemas.

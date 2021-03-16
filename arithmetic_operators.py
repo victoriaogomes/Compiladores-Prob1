@@ -22,6 +22,7 @@ def identify(files_manager, c, line, symbol_table):
         symbol_table.add_token('OpMF', operator, line)       # Add na tabela como operador mal formado.
     else:                                                    # Caso contrário.
         symbol_table.add_token('ART', operator, line)        # Add na tabela como operador aritimético.
+    return error
 
 
 def check_operator(op, error):                               # Verifica se o operador é aceito pela linguagem.

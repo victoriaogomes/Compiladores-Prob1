@@ -23,6 +23,7 @@ def identify(files_manager, c, line, symbol_table):      # Recebe gerenciador de
         symbol_table.add_token('CMF', caracteres, line)  # Add na tabe como caractere mal formado.
     else:                                                # Caso a flag não tenha alertado erro.
         symbol_table.add_token('CAD', caracteres, line)  # Add na tabela como cadeia de caracteres.
+    return error
 
 
 def check_chain(c, error):                               # Verifica se o caractere é aceito na cadeia da linguagem.
