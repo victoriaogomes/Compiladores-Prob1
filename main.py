@@ -6,7 +6,7 @@ import arithmetic_operators
 import relational_operators
 import logic_operators
 import delimitador
-import symbol_table as table
+import token_list as table
 
 # Classe principal do projeto, utilizada para verificar a lista de arquivos presente no folder input, abrir cada um
 # deles, remover seus comentários, analisá-los lexicamente, obtendo seus tokens correspondentes e, em seguida, armaze-
@@ -116,7 +116,7 @@ def clear_comments(file, symbol_table):  # Método utilizado para remover os com
 tableList = []  # Vetor que contém a tabela de símbolos de cada um dos arquivos analisados
 for i in range(len(lista_arquivos)):  # Para cada arquivo presente no folder input
     filesManager.open_file('input\\' + lista_arquivos[i])
-    tableList.append(table.SymbolTable())
+    tableList.append(table.TokenList())
     commentsError = clear_comments(lista_arquivos[i], tableList[i])  # Removemos os comentários presentes no arquivo
     filesManager.close_file()
     filesManager.open_file('auxiliar_files\\' + lista_arquivos[i])
