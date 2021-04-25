@@ -1,12 +1,6 @@
 import filesManager
-import caracter_chain
-import identifiers
-import number
-import arithmetic_operators
-import relational_operators
-import logic_operators
-import delimitador
-import token_list as table
+from lexical_analyzer import arithmetic_operators, token_list as table, logic_operators, delimitador, identifiers, \
+    number, relational_operators, caracter_chain
 
 # Classe principal do projeto, utilizada para verificar a lista de arquivos presente no folder input, abrir cada um
 # deles, remover seus comentários, analisá-los lexicamente, obtendo seus tokens correspondentes e, em seguida, armaze-
