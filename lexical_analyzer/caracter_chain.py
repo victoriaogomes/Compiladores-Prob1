@@ -1,4 +1,4 @@
-import validator as v
+from lexical_analyzer import validator as v
 # Classe identifica e manipula estruturas do time cadeia de caracteres.
 
 

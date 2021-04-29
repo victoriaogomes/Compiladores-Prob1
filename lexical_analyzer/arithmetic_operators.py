@@ -1,4 +1,4 @@
-import validator as v
+from lexical_analyzer import validator as v
 # Classe usada para verificar e manipular os lexemas do tipo operador aritmético.
 
 

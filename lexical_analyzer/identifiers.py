@@ -1,4 +1,4 @@
-import validator as v
+from lexical_analyzer import validator as v
 # Classe que identifica e manipula os lexemas do tipo indentificador e palavra reservada.
 
 

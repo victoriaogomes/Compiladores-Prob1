@@ -1,4 +1,4 @@
-import validator as v
+from lexical_analyzer import validator as v
 
 # Classe utilizada para as verificações e manipulações necessárias do analisador léxico no que tange o uso de números
 

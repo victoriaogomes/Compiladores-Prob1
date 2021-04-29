@@ -1,4 +1,4 @@
-import validator as v
+from lexical_analyzer import validator as v
 # Classe para idenficação e manipulação de operadores logicos.
 
 

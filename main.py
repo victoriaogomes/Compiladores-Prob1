@@ -1,6 +1,13 @@
 import filesManager
-from lexical_analyzer import arithmetic_operators, token_list as table, logic_operators, delimitador, identifiers, \
-    number, relational_operators, caracter_chain
+from syntactic_analyzer import syntactic_analyzer as s_analyzer
+from lexical_analyzer import logic_operators
+from lexical_analyzer import delimitador
+from lexical_analyzer import number
+from lexical_analyzer import arithmetic_operators
+from lexical_analyzer import caracter_chain
+from lexical_analyzer import identifiers
+from lexical_analyzer import relational_operators
+from lexical_analyzer import token_list as table
 
 # Classe principal do projeto, utilizada para verificar a lista de arquivos presente no folder input, abrir cada um
 # deles, remover seus comentários, analisá-los lexicamente, obtendo seus tokens correspondentes e, em seguida, armaze-
@@ -116,7 +123,9 @@ for i in range(len(lista_arquivos)):  # Para cada arquivo presente no folder inp
     filesManager.open_file('auxiliar_files\\' + lista_arquivos[i])
     lexicalError = identify_lexemes(lista_arquivos[i], tableList[i])  # Analisamos lexicamente o conteúdo do arquivo
     filesManager.close_file()
-    print('--- Conclusão da análise do arquivo', lista_arquivos[i])
+    print('--- Conclusão da análise léxica do arquivo', lista_arquivos[i])
+    analyzer = s_analyzer.SyntacticAnalyzer(tableList[-1])
+    analyzer.start()
     print('Foram encontrados erros lexicos\n') if (lexicalError or commentsError) else print('Não foram encontrados '
                                                                                              'erros lexicos\n')
 

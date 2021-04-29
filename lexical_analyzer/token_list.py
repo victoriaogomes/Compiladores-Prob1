@@ -1,5 +1,5 @@
 import operator
-import tokens
+from lexical_analyzer import tokens
 
 # Classe utilizada para a manipulação da tabela de símbolos que é gerada como resultado da análise léxica
 
@@ -12,6 +12,7 @@ class TokenList:
         self.token_number = 0
         self.printable = ''
         self.current_index = -1
+        self.endFileToken = tokens.Token('EOF', 'endOfFile($)', 0)
 
     def add_token(self, lexeme_type, lexeme_text, line):
         # Método utilizado para adicionar um novo token na tabela de símbolos
@@ -30,5 +31,8 @@ class TokenList:
         return self.tokens_list[self.current_index + 1]
 
     def consume_token(self):
-        self.current_index += 1
-        return self.tokens_list[self.current_index]
+        if self.current_index < len(self.tokens_list):
+            self.current_index += 1
+            return self.tokens_list[self.current_index]
+        else:
+            return self.endFileToken
