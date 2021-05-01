@@ -1,10 +1,13 @@
 from syntactic_analyzer import firsts_follows as f
 import inspect
+from copy import copy
+
 
 class SyntacticAnalyzer:
 
     def __init__(self, tokens_list):
         self.tokens_list = tokens_list
+        self.output_list = copy(tokens_list)
 
     def start(self):
         if self.tokens_list.lookahead().lexeme == 'typedef':
@@ -166,7 +169,9 @@ class SyntacticAnalyzer:
             self.arit_exp1()
         else:
             print("ERRO NO ESTADO vect mat index!!!!!")
-            self.error_treatment('VECTMATINDEX', 'true ou false ou global ou local ou ( ou Numero ou Identificador ou Cadeida de caracteres')
+            self.error_treatment('VECTMATINDEX',
+                                 'true ou false ou global ou local ou ( ou Numero ou Identificador ou Cadeida de '
+                                 'caracteres')
 
     def data_type(self):
         if self.tokens_list.lookahead().lexeme in {'int', 'string', 'real', 'boolean'}:
@@ -953,7 +958,9 @@ class SyntacticAnalyzer:
             self.log_exp()
         else:
             print("ERRO NO ESTADO EXPRESSION!!!!!")
-            self.error_treatment('EXPRESSION', '! ou true ou false ou global ou local ou ( ou Numero ou Identificador ou Cadeira de Caracteres')
+            self.error_treatment('EXPRESSION',
+                                 '! ou true ou false ou global ou local ou ( ou Numero ou Identificador ou Cadeira de '
+                                 'Caracteres')
 
     def log_exp(self):
         if self.tokens_list.lookahead().lexeme in {'&&', '||'}:
@@ -1060,7 +1067,9 @@ class SyntacticAnalyzer:
             self.scope_variable()
         else:
             print("ERRO NO ESTADO OPERATE!!!!!")
-            self.error_treatment('OPERATE', '( ou true ou false ou glocal ou local ou Identificador ou Numero ou Cadeia de Caracteres')
+            self.error_treatment('OPERATE',
+                                 '( ou true ou false ou glocal ou local ou Identificador ou Numero ou Cadeia de '
+                                 'Caracteres')
 
     def cont_operate(self):
         if self.tokens_list.lookahead().lexeme == '(':
@@ -1268,7 +1277,9 @@ class SyntacticAnalyzer:
             self.variable()
         else:
             print("ERRO NO ESTADO COMMAND!!!!!")
-            self.error_treatment('COMMAND', 'print ou Identificador ou global ou local ou read ou while ou if ou typedef ou struct ou ++ ou --')
+            self.error_treatment('COMMAND',
+                                 'print ou Identificador ou global ou local ou read ou while ou if ou typedef ou '
+                                 'struct ou ++ ou --')
 
     def other_commands(self):
         if self.tokens_list.lookahead().lexeme == '(':
@@ -1378,7 +1389,9 @@ class SyntacticAnalyzer:
             self.f_call_params()
         else:
             print("ERRO NO ESTADO CONT F CALL!!!!!")
-            self.error_treatment('CONTFCALL', ') ou true ou false ou global ou local ou ( ou ! ou Numero ou Identificador ou Cadeia de Caracteres')
+            self.error_treatment('CONTFCALL',
+                                 ') ou true ou false ou global ou local ou ( ou ! ou Numero ou Identificador ou '
+                                 'Cadeia de Caracteres')
 
     def f_call_params(self):
         if self.tokens_list.lookahead().lexeme == ',':
@@ -1506,6 +1519,10 @@ class SyntacticAnalyzer:
                     self.tokens_list.consume_token()
 
     def error_treatment(self, state, expected_token):
+        if self.tokens_list.lookahead().lexeme_type not in {'SIB', 'NMF', 'CMF', 'OpMF'}:
+            self.output_list.add_token('ERRO SINTATICO ESPERAVA: ' + expected_token
+                                       + ' E RECEBI:', self.tokens_list.lookahead().lexeme,
+                                       self.tokens_list.lookahead().file_line)
         state_firsts = f.FirstsFollows.getFirsts(state)
         print(str(self.tokens_list.lookahead().file_line) + ' ERRO SINTÁTICO ESPERAVA:', expected_token
               + ' E RECEBI:',
@@ -1516,4 +1533,3 @@ class SyntacticAnalyzer:
             self.tokens_list.consume_token()
         if self.tokens_list.lookahead().lexeme in state_firsts:
             getattr(self, inspect.currentframe().f_back.f_code.co_name)()
-            # self.struct_var_exp()

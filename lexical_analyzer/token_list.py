@@ -1,7 +1,8 @@
 import operator
 from lexical_analyzer import tokens
 
-# Classe utilizada para a manipulação da tabela de símbolos que é gerada como resultado da análise léxica
+# Classe utilizada para a manipulação da lista de tokens que é resultado da análise léxica
+# e dos erros gerados pela análise sintática
 
 
 class TokenList:
@@ -18,6 +19,7 @@ class TokenList:
         # Método utilizado para adicionar um novo token na tabela de símbolos
         self.tokens_list[self.token_number] = tokens.Token(lexeme_type, lexeme_text, line)
         self.token_number = self.token_number + 1
+        self.endFileToken.file_line = line
 
     def get_tokens(self):
         # Método responsável por retornar de maneira ordenada todos os tokens previamente cadastrados na tabela de
@@ -28,7 +30,10 @@ class TokenList:
         return self.printable
 
     def lookahead(self):
-        return self.tokens_list[self.current_index + 1]
+        if self.current_index + 1 < len(self.tokens_list):
+            return self.tokens_list[self.current_index + 1]
+        else:
+            return self.endFileToken
 
     def consume_token(self):
         if self.current_index < len(self.tokens_list):

@@ -13,7 +13,7 @@ from lexical_analyzer import token_list as table
 # deles, remover seus comentários, analisá-los lexicamente, obtendo seus tokens correspondentes e, em seguida, armaze-
 # nar o resultado nessa análise em um arquivo correspondente no folder output
 
-
+filesManager.init_program()
 print('################## Welcome to Unicorn.io ###################')
 lista_arquivos = filesManager.list_files('input')  # Obtém a lista dos arquivos presentes no diretório input
 lista_arquivos.sort(key=len)
@@ -63,7 +63,6 @@ def identify_lexemes(arquivo, symbol_table):  # Método que identifica os lexema
             error = True if identifiers.identify(filesManager, c, line, symbol_table) else error
     # Após finalizar a identificação de todos os lexemas presente no arquivo, os tokens levantados são escritos no ar-
     # quivo de saída
-    filesManager.write_symbol_table(symbol_table.get_tokens(), arquivo)
     return error
 
 
@@ -126,6 +125,7 @@ for i in range(len(lista_arquivos)):  # Para cada arquivo presente no folder inp
     print('--- Conclusão da análise léxica do arquivo', lista_arquivos[i])
     analyzer = s_analyzer.SyntacticAnalyzer(tableList[-1])
     analyzer.start()
+    filesManager.write_symbol_table(analyzer.output_list.get_tokens(), lista_arquivos[i])
     print('Foram encontrados erros lexicos\n') if (lexicalError or commentsError) else print('Não foram encontrados '
                                                                                              'erros lexicos\n')
 
