@@ -11,7 +11,7 @@ struct pessoa {
 
 struct funcionario extends pessoa{
     var{
-        real salario;
+        real salario int;
     }
 }
 typedef struct Pessoa Pessoa;
@@ -21,7 +21,7 @@ var{
     int i = 10, jota = 4, k, l, m, n;
     boolean flag1 = true, flag2, flag3;
     real opa = 3.2, zip, zop, zup;
-    string xablau = "teste";
+    string xablau == "teste";
     
 }
 
@@ -38,7 +38,7 @@ function int soma (int a , int b){
 procedure leVetor(){
     while(i<5){
       read(vetor[i]);
-      i++;
+      i+++;
     }
 }
 
@@ -76,7 +76,7 @@ function int JOTA () {
     typedef struct Pessoa Pessoa;
     typedef string frase;
     print(i[jota][9],R8_VINTE.CASA[JOTA[788]]);
-    return jota+
+    return jota;
     k;
     //opa garamba
 }

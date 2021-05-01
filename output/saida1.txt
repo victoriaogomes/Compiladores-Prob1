@@ -42,6 +42,7 @@
 13 DEL {
 14 PRE real
 14 IDE salario
+14 PRE int
 14 DEL ;
 15 DEL }
 16 DEL }
@@ -95,7 +96,7 @@
 23 DEL ;
 24 PRE string
 24 IDE xablau
-24 REL =
+24 REL ==
 24 CAD "teste"
 24 DEL ;
 26 DEL }
@@ -166,7 +167,7 @@
 40 DEL )
 40 DEL ;
 41 IDE i
-41 ART ++
+41 OpMF +++
 41 DEL ;
 42 DEL }
 43 DEL }
@@ -316,7 +317,7 @@
 78 DEL ;
 79 PRE return
 79 IDE jota
-79 ART +
+79 DEL ;
 80 IDE k
 80 DEL ;
 82 DEL }

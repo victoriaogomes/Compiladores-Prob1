@@ -1,5 +1,5 @@
 from syntactic_analyzer import firsts_follows as f
-
+import inspect
 
 class SyntacticAnalyzer:
 
@@ -32,7 +32,7 @@ class SyntacticAnalyzer:
             self.methods()
         else:
             print("ERRO NO ESTADO INICIAL!!!!!")
-            self.error_treatment('START')
+            self.error_treatment('START', 'typedef ou struct ou var ou const ou function ou procedure')
 
     def header1(self):
         if self.tokens_list.lookahead().lexeme == 'typedef':
@@ -55,7 +55,7 @@ class SyntacticAnalyzer:
             self.methods()
         else:
             print("ERRO NO ESTADO HEADER1!!!!!")
-            self.error_treatment('HEADER1')
+            self.error_treatment('HEADER1', 'typedef ou struct ou const ou function ou procedure')
 
     def header2(self):
         if self.tokens_list.lookahead().lexeme == 'typedef':
@@ -78,7 +78,7 @@ class SyntacticAnalyzer:
             self.methods()
         else:
             print("ERRO NO ESTADO HEADER2!!!!!")
-            self.error_treatment('HEADER2')
+            self.error_treatment('HEADER2', 'typedef ou struct ou var ou function ou procedure')
 
     def header3(self):
         if self.tokens_list.lookahead().lexeme == 'typedef':
@@ -96,7 +96,7 @@ class SyntacticAnalyzer:
             self.methods()
         else:
             print("ERRO NO ESTADO HEADER3!!!!!")
-            self.error_treatment('HEADER3')
+            self.error_treatment('HEADER3', 'typedef ou struct ou function ou procedure')
 
     def methods(self):
         if self.tokens_list.lookahead().lexeme == 'function':
@@ -110,7 +110,7 @@ class SyntacticAnalyzer:
             self.proc_choice()
         else:
             print("ERRO NO ESTADO METHODS!!!!!")
-            self.error_treatment('METHODS')
+            self.error_treatment('METHODS', 'function ou procedure')
 
     def proc_choice(self):
         if self.tokens_list.lookahead().lexeme == 'start':
@@ -124,7 +124,7 @@ class SyntacticAnalyzer:
             self.methods()
         else:
             print("ERRO NO ESTADO PROC_CHOICE!!!!!")
-            self.error_treatment('PROCCHOICE')
+            self.error_treatment('PROCCHOICE', 'start ou Identificador')
 
     def variable(self):
         if self.tokens_list.lookahead().lexeme_type == 'IDE':
@@ -136,7 +136,7 @@ class SyntacticAnalyzer:
             self.scope_variable()
         else:
             print("ERRO NO ESTADO Variable!!!!!")
-            self.error_treatment('VARIABLE')
+            self.error_treatment('VARIABLE', 'Identificador ou global ou local')
 
     def scope_variable(self):
         if self.tokens_list.lookahead().lexeme in {'global', 'local'}:
@@ -149,13 +149,13 @@ class SyntacticAnalyzer:
                     self.cont_element()
                 else:
                     print("ERRO NO ESTADO SCOPE Variable!!!!!")
-                    self.error_treatment('SCOPEVARIABLE')
+                    self.error_treatment('SCOPEVARIABLE', 'Identificador')
             else:
                 print("ERRO NO ESTADO SCOPE Variable!!!!!")
-                self.error_treatment('SCOPEVARIABLE')
+                self.error_treatment('SCOPEVARIABLE', '.')
         else:
             print("ERRO NO ESTADO SCOPE Variable!!!!!")
-            self.error_treatment('SCOPEVARIABLE')
+            self.error_treatment('SCOPEVARIABLE', 'global ou local')
 
     def vect_mat_index(self):
         if self.tokens_list.lookahead().lexeme in {'true', 'false', 'global', 'local', '('}:
@@ -166,7 +166,7 @@ class SyntacticAnalyzer:
             self.arit_exp1()
         else:
             print("ERRO NO ESTADO vect mat index!!!!!")
-            self.error_treatment('VECTMATINDEX')
+            self.error_treatment('VECTMATINDEX', 'true ou false ou global ou local ou ( ou Numero ou Identificador ou Cadeida de caracteres')
 
     def data_type(self):
         if self.tokens_list.lookahead().lexeme in {'int', 'string', 'real', 'boolean'}:
@@ -175,7 +175,7 @@ class SyntacticAnalyzer:
             self.tokens_list.consume_token()
         else:
             print("ERRO NO ESTADO data type!!!!!")
-            self.error_treatment('DATATYPE')
+            self.error_treatment('DATATYPE', 'int ou string ou real ou boolean ou Identificador')
 
     def cont_element(self):
         if self.tokens_list.lookahead().lexeme == '[':
@@ -188,7 +188,7 @@ class SyntacticAnalyzer:
                 self.matrix_e1()
             else:
                 print("ERRO EM CONT ELEMENT")
-                self.error_treatment('CONTELEMENT')
+                self.error_treatment('CONTELEMENT', ']')
         else:
             print("VAI PRA MATRIX E 2")
             self.matrix_e2()
@@ -202,10 +202,10 @@ class SyntacticAnalyzer:
                 self.cont_element()
             else:
                 print("ERRO NO ESTADO struct e1!!!!!")
-                self.error_treatment('STRUCTE1')
+                self.error_treatment('STRUCTE1', 'Identificador')
         else:
             print("ERRO NO ESTADO struct e1!!!!!")
-            self.error_treatment('STRUCTE1')
+            self.error_treatment('STRUCTE1', '.')
 
     def matrix_e1(self):
         if self.tokens_list.lookahead().lexeme == '[':
@@ -218,7 +218,7 @@ class SyntacticAnalyzer:
                 self.matrix_e2()
             else:
                 print("ERRO NO ESTADO matrix e1!!!!!")
-                self.error_treatment('MATRIZE1')
+                self.error_treatment('MATRIZE1', ']')
         else:
             print("VAI PRA MATRIX E2")
             self.matrix_e2()
@@ -237,10 +237,10 @@ class SyntacticAnalyzer:
                 self.first_var()
             else:
                 print("ERRO NO ESTADO VAR DECLARATION!!!!!")
-                self.error_treatment('VARDECLARATION')
+                self.error_treatment('VARDECLARATION', '{')
         else:
             print("ERRO NO ESTADO VAR DECLARATION!!!!!")
-            self.error_treatment('VARDECLARATION')
+            self.error_treatment('VARDECLARATION', 'var')
 
     def first_var(self):
         if self.tokens_list.lookahead().lexeme in {'int', 'real', 'boolean', 'struct'}:
@@ -255,7 +255,7 @@ class SyntacticAnalyzer:
             self.var_id()
         else:
             print("ERRO NO ESTADO FIRST VAR!!!!!")
-            self.error_treatment('FIRSTVAR')
+            self.error_treatment('FIRSTVAR', 'int ou real ou boolean ou struct ou Identificador')
 
     def next_var(self):
         if self.tokens_list.lookahead().lexeme in {'int', 'real', 'boolean', 'struct', 'string'}:
@@ -272,7 +272,7 @@ class SyntacticAnalyzer:
             self.tokens_list.consume_token()
         else:
             print("ERRO NO ESTADO NEXT VAR!!!!!")
-            self.error_treatment('NEXTVAR')
+            self.error_treatment('NEXTVAR', 'int ou real ou boolean ou struct ou string ou Identificador ou }')
 
     def continue_sos(self):
         if self.tokens_list.lookahead().lexeme == 'struct':
@@ -290,7 +290,7 @@ class SyntacticAnalyzer:
             self.var_exp()
         else:
             print("ERRO NO ESTADO VAR ID!!!!!")
-            self.error_treatment('VARID')
+            self.error_treatment('VARID', 'Identificador')
 
     def var_exp(self):
         if self.tokens_list.lookahead().lexeme == ',':
@@ -317,10 +317,10 @@ class SyntacticAnalyzer:
                 self.structure()
             else:
                 print("ERRO NO ESTADO VAR EXP!!!!!")
-                self.error_treatment('VAREXP')
+                self.error_treatment('VAREXP', ']')
         else:
             print("ERRO NO ESTADO VAR EX!!!!!")
-            self.error_treatment('VAREXP')
+            self.error_treatment('VAREXP', ', ou = ou ; ou [')
 
     def structure(self):
         if self.tokens_list.lookahead().lexeme == ',':
@@ -344,10 +344,10 @@ class SyntacticAnalyzer:
                 self.cont_matrix()
             else:
                 print("ERRO NO ESTADO STRUCTURE!!!!!")
-                self.error_treatment('STRUCTURE')
+                self.error_treatment('STRUCTURE', ']')
         else:
             print("ERRO NO ESTADO STRUCTURE!!!!!")
-            self.error_treatment('STRUCTURE')
+            self.error_treatment('STRUCTURE', ', ou = ou ; ou {')
 
     def cont_matrix(self):
         if self.tokens_list.lookahead().lexeme == '=':
@@ -364,7 +364,7 @@ class SyntacticAnalyzer:
             self.next_var()
         else:
             print("ERRO NO CONT MATRIX!!!!!")
-            self.error_treatment('CONTMATRIX')
+            self.error_treatment('CONTMATRIX', '= ou , ou ;')
 
     def init_array(self):
         if self.tokens_list.lookahead().lexeme == '[':
@@ -375,7 +375,7 @@ class SyntacticAnalyzer:
             self.next_array()
         else:
             print("ERRO NO ESTADO INIT ARRAY!!!!!")
-            self.error_treatment('INITARRAY')
+            self.error_treatment('INITARRAY', '[')
 
     def next_array(self):
         if self.tokens_list.lookahead().lexeme == ',':
@@ -390,7 +390,7 @@ class SyntacticAnalyzer:
             self.verif_var()
         else:
             print("ERRO NO ESTADO NEXT ARRAY!!!!!")
-            self.error_treatment('NEXTARRAY')
+            self.error_treatment('NEXTARRAY', ', ou ]')
 
     def init_matrix(self):
         if self.tokens_list.lookahead().lexeme == '[':
@@ -399,7 +399,7 @@ class SyntacticAnalyzer:
             self.matrix_value()
         else:
             print("ERRO NO ESTADO INIT MATRIX!!!!!")
-            self.error_treatment('INITMATRIX')
+            self.error_treatment('INITMATRIX', '[')
 
     def matrix_value(self):
         if self.tokens_list.lookahead().lexeme == '[':
@@ -410,7 +410,7 @@ class SyntacticAnalyzer:
             self.next_matrix()
         else:
             print("ERRO NO ESTADO MATRIX VALUE!!!!!")
-            self.error_treatment('MATRIXVALUE')
+            self.error_treatment('MATRIXVALUE', '[')
 
     def next_matrix(self):
         if self.tokens_list.lookahead().lexeme == ',':
@@ -425,7 +425,7 @@ class SyntacticAnalyzer:
             self.next()
         else:
             print("ERRO NO ESTADO NEXT MATRIX!!!!!")
-            self.error_treatment('NEXTVALUE')
+            self.error_treatment('NEXTVALUE', ', ou ]')
 
     def next(self):
         if self.tokens_list.lookahead().lexeme == ',':
@@ -437,7 +437,7 @@ class SyntacticAnalyzer:
             self.verif_var()
         else:
             print("ERRO NO ESTADO NEXT!!!!!")
-            self.error_treatment('NEXT')
+            self.error_treatment('NEXT', ', ou ]')
 
     def verif_var(self):
         if self.tokens_list.lookahead().lexeme == ',':
@@ -450,7 +450,7 @@ class SyntacticAnalyzer:
             self.next_var()
         else:
             print("ERRO NO ESTADO VERIF VAR!!!!!")
-            self.error_treatment('VERIFVAR')
+            self.error_treatment('VERIFVAR', ', ou ;')
 
     def const_declaration(self):
         if self.tokens_list.lookahead().lexeme == 'const':
@@ -461,10 +461,10 @@ class SyntacticAnalyzer:
                 self.first_const()
             else:
                 print("ERRO NO ESTADO CONST DECLARATION!!!!!")
-                self.error_treatment('CONSTDECLARATION')
+                self.error_treatment('CONSTDECLARATION', '{')
         else:
             print("ERRO NO ESTADO CONST DECLARATION!!!!!")
-            self.error_treatment('CONSTDECLARATION')
+            self.error_treatment('CONSTDECLARATION', 'const')
 
     def first_const(self):
         print("VAI PARA CONTINUE CONST SOS")
@@ -496,8 +496,8 @@ class SyntacticAnalyzer:
             print("VAI PARA CONST EXP")
             self.const_exp()
         else:
-            self.error_treatment('CONSTID')
             print("ERRO NO ESTADO CONST ID!!!!!")
+            self.error_treatment('CONSTID', 'Identificador')
 
     def const_exp(self):
         if self.tokens_list.lookahead().lexeme == '=':
@@ -516,7 +516,7 @@ class SyntacticAnalyzer:
                 self.const_structure()
             else:
                 print("ERRO NO ESTADO CONST EXP!!!!!")
-                self.error_treatment('CONSTEXP')
+                self.error_treatment('CONSTEXP', ']')
 
     def const_structure(self):
         if self.tokens_list.lookahead().lexeme == '[':
@@ -531,10 +531,10 @@ class SyntacticAnalyzer:
                     self.init_const_matrix()
                 else:
                     print("ERRO NO ESTADO CONST STRUCTURE!!!!!")
-                    self.error_treatment('CONSTSTRUCTURE')
+                    self.error_treatment('CONSTSTRUCTURE', '=')
             else:
                 print("ERRO NO ESTADO CONST STRUCTURE!!!!!")
-                self.error_treatment('CONSTSTRUCTURE')
+                self.error_treatment('CONSTSTRUCTURE', ']')
         elif self.tokens_list.lookahead().lexeme == '=':
             self.tokens_list.consume_token()
             if self.tokens_list.lookahead().lexeme == '[':
@@ -545,10 +545,10 @@ class SyntacticAnalyzer:
                 self.next_const_array()
             else:
                 print("ERRO NO ESTADO CONST STRUCTURE!!!!!")
-                self.error_treatment('CONSTSTRUCTURE')
+                self.error_treatment('CONSTSTRUCTURE', '[')
         else:
             print("ERRO NO ESTADO CONST STRUCTURE!!!!!")
-            self.error_treatment('CONSTSTRUCTURE')
+            self.error_treatment('CONSTSTRUCTURE', '] ou =')
 
     def next_const_array(self):
         if self.tokens_list.lookahead().lexeme == ',':
@@ -563,7 +563,7 @@ class SyntacticAnalyzer:
             self.verif_const()
         else:
             print("ERRO NO ESTADO NEXT CONST ARRAY!!!!!")
-            self.error_treatment('CONSTARRAY')
+            self.error_treatment('NEXTCONSTARRAY', ', ou ]')
 
     def init_const_matrix(self):
         if self.tokens_list.lookahead().lexeme == '[':
@@ -572,7 +572,7 @@ class SyntacticAnalyzer:
             self.matrix_const_value()
         else:
             print("ERRO NO ESTADO INIT CONST MATRIX!!!!!")
-            self.error_treatment('CONSTMATRIX')
+            self.error_treatment('INITCONSTMATRIX', '[')
 
     def matrix_const_value(self):
         if self.tokens_list.lookahead().lexeme == '[':
@@ -583,7 +583,7 @@ class SyntacticAnalyzer:
             self.next_const_matrix()
         else:
             print("ERRO NO ESTADO MATRIX CONST VALUE!!!!!")
-            self.error_treatment('CONSTVALUE')
+            self.error_treatment('MATRIXCONSTVALUE', '[')
 
     def next_const_matrix(self):
         if self.tokens_list.lookahead().lexeme == ',':
@@ -598,7 +598,7 @@ class SyntacticAnalyzer:
             self.next_const2()
         else:
             print("ERRO NO ESTADO NEXT CONST MATRIX!!!!!")
-            self.error_treatment('NEXTCONSTMATRIX')
+            self.error_treatment('NEXTCONSTMATRIX', ', ou ]')
 
     def next_const2(self):
         if self.tokens_list.lookahead().lexeme == ',':
@@ -611,7 +611,7 @@ class SyntacticAnalyzer:
             self.verif_const()
         else:
             print("ERRO NO ESTADO NEXT CONST 2!!!!!")
-            self.error_treatment('NEXTCONST2')
+            self.error_treatment('NEXTCONST2', ', ou ]')
 
     def verif_const(self):
         if self.tokens_list.lookahead().lexeme == ',':
@@ -624,7 +624,7 @@ class SyntacticAnalyzer:
             self.next_const()
         else:
             print("ERRO NO ESTADO VERIF CONST!!!!!")
-            self.error_treatment('VERIFCONST')
+            self.error_treatment('VERIFCONST', ', ou ;')
 
     def function(self):
         if self.tokens_list.lookahead().lexeme == 'function':
@@ -639,13 +639,13 @@ class SyntacticAnalyzer:
                     self.continue_function()
                 else:
                     print("ERRO NO ESTADO FUNCTION!!!!!")
-                    self.error_treatment('FUNCTION')
+                    self.error_treatment('FUNCTION', '(')
             else:
                 print("ERRO NO ESTADO FUNCTION!!!!!")
-                self.error_treatment('FUNCTION')
+                self.error_treatment('FUNCTION', 'Identificador')
         else:
             print("ERRO NO ESTADO FUNCTION!!!!!")
-            self.error_treatment('FUNCTION')
+            self.error_treatment('FUNCTION', 'function')
 
     def continue_function(self):
         if self.tokens_list.lookahead().lexeme == ')':
@@ -664,7 +664,7 @@ class SyntacticAnalyzer:
             self.block_function()
         else:
             print("ERRO NO ESTADO CONTINUE FUNCTION!!!!!")
-            self.error_treatment('CONTINUEFUNCTION')
+            self.error_treatment('CONTINUEFUNCTION', ') ou int ou real ou string ou boolean ou struct ou Identificador')
 
     def parameters(self):
         if self.tokens_list.lookahead().lexeme in {'int', 'real', 'string',
@@ -677,7 +677,7 @@ class SyntacticAnalyzer:
                 self.param_loop()
             else:
                 print("ERRO NO ESTADO PARAMETERS!!!!!")
-                self.error_treatment('PARAMETERS')
+                self.error_treatment('PARAMETERS', 'Identificador')
         elif self.tokens_list.lookahead().lexeme == 'struct':
             self.tokens_list.consume_token()
             print("VAI PARA DATA TYPE")
@@ -688,10 +688,10 @@ class SyntacticAnalyzer:
                 self.param_loop()
             else:
                 print("ERRO NO ESTADO PARAMETERS!!!!!")
-                self.error_treatment('PARAMETERS')
+                self.error_treatment('PARAMETERS', 'Identificador')
         else:
             print("ERRO NO ESTADO PARAMETERS!!!!!")
-            self.error_treatment('PARAMETERS')
+            self.error_treatment('PARAMETERS', 'int ou real ou string ou boolean ou Identificador ou struct')
 
     def param_loop(self):
         if self.tokens_list.lookahead().lexeme == ',':
@@ -702,7 +702,7 @@ class SyntacticAnalyzer:
             self.tokens_list.consume_token()
         else:
             print("ERRO NO ESTADO PARAM LOOP!!!!!")
-            self.error_treatment('PARAMLOOP')
+            self.error_treatment('PARAMLOOP', ', ou )')
 
     def block_function(self):
         if self.tokens_list.lookahead().lexeme == '{':
@@ -715,13 +715,13 @@ class SyntacticAnalyzer:
                     self.tokens_list.consume_token()
                 else:
                     print("ERRO NO ESTADO BLOCK FUNCTION!!!!!")
-                    self.error_treatment('BLOCKFUNCTION')
+                    self.error_treatment('BLOCKFUNCTION', '}')
             else:
                 print("ERRO NO ESTADO BLOCK FUNCTION!!!!!")
-                self.error_treatment('BLOCKFUNCTION')
+                self.error_treatment('BLOCKFUNCTION', ';')
         else:
             print("ERRO NO ESTADO BLOCK FUNCTION!!!!!")
-            self.error_treatment('BLOCKFUNCTION')
+            self.error_treatment('BLOCKFUNCTION', '{')
 
     def block_function_content(self):
         if self.tokens_list.lookahead().lexeme == 'var':
@@ -739,7 +739,7 @@ class SyntacticAnalyzer:
             self.function_content()
 
     def function_content(self):
-        print("VAI PARA CIDE")
+        print("VAI PARA CODE")
         self.code()
         if self.tokens_list.lookahead().lexeme == 'return':
             self.tokens_list.consume_token()
@@ -747,7 +747,7 @@ class SyntacticAnalyzer:
             self.expression()
         else:
             print("ERRO NO ESTADO FUNCTION CONTENT!!!!!")
-            self.error_treatment('FUNCTIONCONTENT')
+            self.error_treatment('FUNCTIONCONTENT', 'return')
 
     def content1(self):
         if self.tokens_list.lookahead().lexeme == 'const':
@@ -782,10 +782,10 @@ class SyntacticAnalyzer:
                 self.struct_vars()
             else:
                 print("ERRO NO ESTADO STRUCTURE DECLARATION!!!!!")
-                self.error_treatment('STRUCTUREDECLARATION')
+                self.error_treatment('STRUCTUREDECLARATION', 'Identificador')
         else:
             print("ERRO NO ESTADO STRUCTURE DECLARATION!!!!!")
-            self.error_treatment('STRUCTUREDECLARATION')
+            self.error_treatment('STRUCTUREDECLARATION', 'struct')
 
     def struct_vars(self):
         if self.tokens_list.lookahead().lexeme == '{':
@@ -798,10 +798,10 @@ class SyntacticAnalyzer:
                     self.first_struct_var()
                 else:
                     print("ERRO NO ESTADO STRUCT VAR!!!!!")
-                    self.error_treatment('STRUCTVAR')
+                    self.error_treatment('STRUCTVAR', '{')
             else:
                 print("ERRO NO ESTADO STRUCT VAR!!!!!")
-                self.error_treatment('STRUCTVAR')
+                self.error_treatment('STRUCTVAR', 'var')
         elif self.tokens_list.lookahead().lexeme == 'extends':
             self.tokens_list.consume_token()
             if self.tokens_list.lookahead().lexeme_type == 'IDE':
@@ -816,19 +816,19 @@ class SyntacticAnalyzer:
                             self.first_struct_var()
                         else:
                             print("ERRO NO ESTADO STRUCT VAR!!!!!")
-                            self.error_treatment('STRUCTVAR')
+                            self.error_treatment('STRUCTVAR', '{')
                     else:
                         print("ERRO NO ESTADO STRUCT VAR!!!!!")
-                        self.error_treatment('STRUCTVAR')
+                        self.error_treatment('STRUCTVAR', 'var')
                 else:
                     print("ERRO NO ESTADO STRUCT VAR!!!!!")
-                    self.error_treatment('STRUCTVAR')
+                    self.error_treatment('STRUCTVAR', '{')
             else:
                 print("ERRO NO ESTADO STRUCT VAR!!!!!")
-                self.error_treatment('STRUCTVAR')
+                self.error_treatment('STRUCTVAR', 'Identificador')
         else:
             print("ERRO NO ESTADO STRUCT VAR!!!!!")
-            self.error_treatment('STRUCTVAR')
+            self.error_treatment('STRUCTVAR', '{ ou extends')
 
     def first_struct_var(self):
         print("VAI PARA DATA TYPE")
@@ -843,7 +843,7 @@ class SyntacticAnalyzer:
             self.struct_var_exp()
         else:
             print("ERRO NO ESTADO STRUCT VAR ID!!!!!")
-            self.error_treatment('STRUCTVARID')
+            self.error_treatment('STRUCTVARID', 'Identificador')
 
     def next_struct_var(self):
         if self.tokens_list.lookahead().lexeme == '}':
@@ -852,7 +852,7 @@ class SyntacticAnalyzer:
                 self.tokens_list.consume_token()
             else:
                 print("ERRO NO ESTADO NEXT STRUCT VAR!!!!!")
-                self.error_treatment('NEXTSTRUCTVAR')
+                self.error_treatment('NEXTSTRUCTVAR', '}')
         elif self.tokens_list.lookahead().lexeme_type == 'IDE':
             print("VAI PARA DATA TYPE")
             self.data_type()
@@ -865,7 +865,7 @@ class SyntacticAnalyzer:
             self.struct_var_id()
         else:
             print("ERRO NO ESTADO NEXT STRUCT VAR!!!!!")
-            self.error_treatment('NEXTSTRUCTVAR')
+            self.error_treatment('NEXTSTRUCTVAR', '} ou Identificador ou int ou real ou string ou boolean')
 
     def struct_var_exp(self):
         if self.tokens_list.lookahead().lexeme == ',':
@@ -886,13 +886,13 @@ class SyntacticAnalyzer:
                     self.struct_matrix()
                 else:
                     print("ERRO NO ESTADO STRUCT VAR EXP!!!!!")
-                    self.error_treatment('STRUCTVAREXP')
+                    self.error_treatment('STRUCTVAREXP', '}')
             else:
                 print("ERRO NO ESTADO STRUCT VAR EXP!!!!!")
-                self.error_treatment('STRUCTVAREXP')
+                self.error_treatment('STRUCTVAREXP', 'Numero')
         else:
             print("ERRO NO ESTADO STRUCT VAR EXP!!!!!")
-            self.error_treatment('STRUCTVAREXP')
+            self.error_treatment('STRUCTVAREXP', ', ou ; ou [')
 
     def struct_matrix(self):
         if self.tokens_list.lookahead().lexeme == '[':
@@ -905,10 +905,10 @@ class SyntacticAnalyzer:
                     self.cont_struct_matrix()
                 else:
                     print("ERRO NO ESTADO STRUCT MATRIX!!!!!")
-                    self.error_treatment('STRUCTMATRIX')
+                    self.error_treatment('STRUCTMATRIX', ']')
             else:
                 print("ERRO NO ESTADO STRUCT MATRIX!!!!!")
-                self.error_treatment('STRUCTMATRIX')
+                self.error_treatment('STRUCTMATRIX', 'Numero')
         elif self.tokens_list.lookahead().lexeme == ',':
             self.tokens_list.consume_token()
             print("VAI PARA STRUCT VAR ID")
@@ -919,7 +919,7 @@ class SyntacticAnalyzer:
             self.next_struct_var()
         else:
             print("ERRO NO ESTADO STRUCT MATRIX!!!!!")
-            self.error_treatment('STRUCTMATRIX')
+            self.error_treatment('STRUCTMATRIX', '[ ou , ou ;')
 
     def cont_struct_matrix(self):
         if self.tokens_list.lookahead().lexeme == ',':
@@ -932,7 +932,7 @@ class SyntacticAnalyzer:
             self.next_struct_var()
         else:
             print("ERRO NO ESTADO CONT STRUCT MATRIX!!!!!")
-            self.error_treatment('CONTSTRUCTMATRIX')
+            self.error_treatment('CONTSTRUCTMATRIX', ', ou ;')
 
     def expression(self):
         if self.tokens_list.lookahead().lexeme == '!':
@@ -953,7 +953,7 @@ class SyntacticAnalyzer:
             self.log_exp()
         else:
             print("ERRO NO ESTADO EXPRESSION!!!!!")
-            self.error_treatment('EXPRESSION')
+            self.error_treatment('EXPRESSION', '! ou true ou false ou global ou local ou ( ou Numero ou Identificador ou Cadeira de Caracteres')
 
     def log_exp(self):
         if self.tokens_list.lookahead().lexeme in {'&&', '||'}:
@@ -969,7 +969,7 @@ class SyntacticAnalyzer:
             self.tokens_list.consume_token()
         else:
             print("ERRO NO ESTADO LOGIC SYMBOL!!!!!")
-            self.error_treatment('LOGICSYMBOL')
+            self.error_treatment('LOGICSYMBOL', '&& ou ||')
 
     def rel_exp(self):
         print("VAI PARA ARIT EXP 1")
@@ -991,7 +991,7 @@ class SyntacticAnalyzer:
             self.tokens_list.consume_token()
         else:
             print("ERRO NO ESTADO REL SYMBOL!!!!!")
-            self.error_treatment('RELSYMBOL')
+            self.error_treatment('RELSYMBOL', '> ou < ou == ou >= ou  <=')
 
     def arit_exp1(self):
         print("VAI PARA TERM")
@@ -1013,7 +1013,7 @@ class SyntacticAnalyzer:
             self.tokens_list.consume_token()
         else:
             print("ERRO NO ESTADO ARIT SYMB 1!!!!!")
-            self.error_treatment('ARITSYMB1')
+            self.error_treatment('ARITSYMB1', '+ ou  -')
 
     def term(self):
         print("VAI PARA OPERATE")
@@ -1035,7 +1035,7 @@ class SyntacticAnalyzer:
             self.tokens_list.consume_token()
         else:
             print("ERRO NO ESTADO ARIT SYMB 2!!!!!")
-            self.error_treatment('ARITSYMB2')
+            self.error_treatment('ARITSYMB2', '* ou /')
 
     def operate(self):
         if self.tokens_list.lookahead().lexeme == '(':
@@ -1045,8 +1045,8 @@ class SyntacticAnalyzer:
             if self.tokens_list.lookahead().lexeme == ')':
                 self.tokens_list.consume_token()
             else:
-                # TODO: Descrever melhor o erro do OPERATE
                 print("ERRO NO ESTADO OPERATE!!!!!")
+                self.error_treatment('OPERATE', ')')
         elif self.tokens_list.lookahead().lexeme in {'true', 'false'}:
             self.tokens_list.consume_token()
         elif self.tokens_list.lookahead().lexeme_type in {'NRO', 'CAD'}:
@@ -1060,7 +1060,7 @@ class SyntacticAnalyzer:
             self.scope_variable()
         else:
             print("ERRO NO ESTADO OPERATE!!!!!")
-            self.error_treatment('OPERATE')
+            self.error_treatment('OPERATE', '( ou true ou false ou glocal ou local ou Identificador ou Numero ou Cadeia de Caracteres')
 
     def cont_operate(self):
         if self.tokens_list.lookahead().lexeme == '(':
@@ -1077,7 +1077,7 @@ class SyntacticAnalyzer:
             self.cont_typedef_dec()
         else:
             print("ERRO NO ESTADO TYPEDEF DECLARATION!!!!!")
-            self.error_treatment('TYPEDEFDECLARATION')
+            self.error_treatment('TYPEDEFDECLARATION', 'typedef')
 
     def cont_typedef_dec(self):
         if self.tokens_list.lookahead().lexeme == 'struct':
@@ -1090,13 +1090,13 @@ class SyntacticAnalyzer:
                         self.tokens_list.consume_token()
                     else:
                         print("ERRO NO ESTADO CONT TYPEDEF DEC!!!!!")
-                        self.error_treatment('CONTTYPEDEFDEC')
+                        self.error_treatment('CONTTYPEDEFDEC', ';')
                 else:
                     print("ERRO NO ESTADO CONT TYPEDEF DEC!!!!!")
-                    self.error_treatment('CONTTYPEDEFDEC')
+                    self.error_treatment('CONTTYPEDEFDEC', 'Identificador')
             else:
                 print("ERRO NO ESTADO CONT TYPEDEF DEC!!!!!")
-                self.error_treatment('CONTTYPEDEFDEC')
+                self.error_treatment('CONTTYPEDEFDEC', 'Identificador')
         elif self.tokens_list.lookahead().lexeme_type == 'IDE' or self.tokens_list.lookahead().lexeme in {
                 'int', 'real', 'string', 'boolean'}:
             print("VAI PARA DATA TYPE")
@@ -1107,13 +1107,13 @@ class SyntacticAnalyzer:
                     self.tokens_list.consume_token()
                 else:
                     print("ERRO NO ESTADO CONT TYPEDEF DEC!!!!!")
-                    self.error_treatment('CONTTYPEDEFDEC')
+                    self.error_treatment('CONTTYPEDEFDEC', ';')
             else:
                 print("ERRO NO ESTADO CONT TYPEDEF DEC!!!!!")
-                self.error_treatment('CONTTYPEDEFDEC')
+                self.error_treatment('CONTTYPEDEFDEC', 'Identificador')
         else:
             print("ERRO NO ESTADO CONT TYPEDEF DEC!!!!!")
-            self.error_treatment('CONTTYPEDEFDEC')
+            self.error_treatment('CONTTYPEDEFDEC', 'struct ou int ou real ou string ou boolean ou Identificador')
 
     def start_procedure(self):
         if self.tokens_list.lookahead().lexeme == '(':
@@ -1126,13 +1126,13 @@ class SyntacticAnalyzer:
                     self.proc_content()
                 else:
                     print("ERRO NO ESTADO START PROCEDURE!!!!!")
-                    self.error_treatment('STARTPROCEDURE')
+                    self.error_treatment('STARTPROCEDURE', '{')
             else:
                 print("ERRO NO ESTADO START PROCEDURE!!!!!")
-                self.error_treatment('STARTPROCEDURE')
+                self.error_treatment('STARTPROCEDURE', ')')
         else:
             print("ERRO NO ESTADO START PROCEDURE!!!!!")
-            self.error_treatment('STARTPROCEDURE')
+            self.error_treatment('STARTPROCEDURE', '(')
 
     def procedure(self):
         if self.tokens_list.lookahead().lexeme_type == 'IDE':
@@ -1147,13 +1147,13 @@ class SyntacticAnalyzer:
                     self.proc_content()
                 else:
                     print("ERRO NO ESTADO PROCEDURE!!!!!")
-                    self.error_treatment('PROCEDURE')
+                    self.error_treatment('PROCEDURE', '{')
             else:
                 print("ERRO NO ESTADO PROCEDURE!!!!!")
-                self.error_treatment('PROCEDURE')
+                self.error_treatment('PROCEDURE', '(')
         else:
             print("ERRO NO ESTADO PROCEDURE!!!!!")
-            self.error_treatment('PROCEDURE')
+            self.error_treatment('PROCEDURE', 'IDentificador')
 
     def proc_param(self):
         if self.tokens_list.lookahead().lexeme == ')':
@@ -1164,7 +1164,7 @@ class SyntacticAnalyzer:
             self.parameters()
         else:
             print("ERRO NO ESTADO PROC PARAM!!!!!")
-            self.error_treatment('PROCPARAM')
+            self.error_treatment('PROCPARAM', ') ou struct ou int ou real ou string ou boolean ou Identificador')
 
     def proc_content(self):
         if self.tokens_list.lookahead().lexeme == 'var':
@@ -1184,7 +1184,7 @@ class SyntacticAnalyzer:
                 self.tokens_list.consume_token()
             else:
                 print("ERRO NO ESTADO PROC CONTENT!!!!!")
-                self.error_treatment('PROCCONTENT')
+                self.error_treatment('PROCCONTENT', '}')
 
     def proc_content2(self):
         if self.tokens_list.lookahead().lexeme == 'const':
@@ -1199,7 +1199,7 @@ class SyntacticAnalyzer:
                 self.tokens_list.consume_token()
             else:
                 print("ERRO NO ESTADO PROC CONTENT2!!!!!")
-                self.error_treatment('PROCCONTENT2')
+                self.error_treatment('PROCCONTENT2', '}')
 
     def proc_content3(self):
         if self.tokens_list.lookahead().lexeme == 'var':
@@ -1214,7 +1214,7 @@ class SyntacticAnalyzer:
                 self.tokens_list.consume_token()
             else:
                 print("ERRO NO ESTADO PROC CONTENT3!!!!!")
-                self.error_treatment('PROCCONTENT3')
+                self.error_treatment('PROCCONTENT3', '}')
 
     def proc_content4(self):
         print("VAI PARA CODE")
@@ -1223,7 +1223,7 @@ class SyntacticAnalyzer:
             self.tokens_list.consume_token()
         else:
             print("ERRO NO ESTADO PROC CONTENT4!!!!!")
-            self.error_treatment('PROCCONTENT4')
+            self.error_treatment('PROCCONTENT4', '}')
 
     def code(self):
         if self.tokens_list.lookahead().lexeme in {
@@ -1268,7 +1268,7 @@ class SyntacticAnalyzer:
             self.variable()
         else:
             print("ERRO NO ESTADO COMMAND!!!!!")
-            self.error_treatment('COMMAND')
+            self.error_treatment('COMMAND', 'print ou Identificador ou global ou local ou read ou while ou if ou typedef ou struct ou ++ ou --')
 
     def other_commands(self):
         if self.tokens_list.lookahead().lexeme == '(':
@@ -1287,13 +1287,14 @@ class SyntacticAnalyzer:
                 self.tokens_list.consume_token()
             else:
                 print("ERRO NO ESTADO OTHER COMMANDS2!!!!!")
+                self.error_treatment('OTHERCOMMANDS2', ';')
 
         elif self.tokens_list.lookahead().lexeme == '=':
             print("VAI PARA ASSIGNMENT")
             self.assignment()
         else:
             print("ERRO NO ESTADO OTHER COMMANDS2!!!!!")
-            self.error_treatment('OTHERCOMMANDS2')
+            self.error_treatment('OTHERCOMMANDS2', '++ ou -- ou =')
 
     def print_func(self):
         if self.tokens_list.lookahead().lexeme == 'print':
@@ -1304,10 +1305,10 @@ class SyntacticAnalyzer:
                 self.printable_list()
             else:
                 print("ERRO NO ESTADO PRINT FUNC!!!!!")
-                self.error_treatment('PRINTFUNC')
+                self.error_treatment('PRINTFUNC', '(')
         else:
             print("ERRO NO ESTADO PRINT FUNC!!!!!")
-            self.error_treatment('PRINTFUNC')
+            self.error_treatment('PRINTFUNC', 'print')
 
     def printable_list(self):
         print("VAI PARA PRINTABLE")
@@ -1324,7 +1325,7 @@ class SyntacticAnalyzer:
             self.variable()
         else:
             print("ERRO NO ESTADO PRINTABLE!!!!!")
-            self.error_treatment('PRINTABLE')
+            self.error_treatment('PRINTABLE', 'Cadeia de Caracteres ou global ou local ou identificador')
 
     def next_print_value(self):
         if self.tokens_list.lookahead().lexeme == ',':
@@ -1337,10 +1338,10 @@ class SyntacticAnalyzer:
                 self.tokens_list.consume_token()
             else:
                 print("ERRO NO ESTADO NEXT PRINT VALUE!!!!!")
-                self.error_treatment('NEXTPRINTVALUE')
+                self.error_treatment('NEXTPRINTVALUE', ';')
         else:
             print("ERRO NO ESTADO NEXT PRINT VALUE!!!!!")
-            self.error_treatment('NEXTPRINTVALUE')
+            self.error_treatment('NEXTPRINTVALUE', ', ou )')
 
     def assignment(self):
         if self.tokens_list.lookahead().lexeme == '=':
@@ -1351,10 +1352,10 @@ class SyntacticAnalyzer:
                 self.tokens_list.consume_token()
             else:
                 print("ERRO NO ESTADO ASSIGNMENT!!!!!")
-                self.error_treatment('ASSIGNMENT')
+                self.error_treatment('ASSIGNMENT', ';')
         else:
             print("ERRO NO ESTADO ASSIGNMENT!!!!!")
-            self.error_treatment('ASSIGNMENT')
+            self.error_treatment('ASSIGNMENT', '=')
 
     def function_call(self):
         if self.tokens_list.lookahead().lexeme == '(':
@@ -1363,7 +1364,7 @@ class SyntacticAnalyzer:
             self.cont_f_call()
         else:
             print("ERRO NO ESTADO FUNCTION CALL!!!!!")
-            self.error_treatment('FUNCTIONCALL')
+            self.error_treatment('FUNCTIONCALL', '(')
 
     def cont_f_call(self):
         if self.tokens_list.lookahead().lexeme == ')':
@@ -1377,7 +1378,7 @@ class SyntacticAnalyzer:
             self.f_call_params()
         else:
             print("ERRO NO ESTADO CONT F CALL!!!!!")
-            self.error_treatment('CONTFCALL')
+            self.error_treatment('CONTFCALL', ') ou true ou false ou global ou local ou ( ou ! ou Numero ou Identificador ou Cadeia de Caracteres')
 
     def f_call_params(self):
         if self.tokens_list.lookahead().lexeme == ',':
@@ -1390,7 +1391,7 @@ class SyntacticAnalyzer:
             self.tokens_list.consume_token()
         else:
             print("ERRO NO ESTADO F CALL PARAMS!!!!!")
-            self.error_treatment('FCALLPARAMS')
+            self.error_treatment('FCALLPARAMS', ', ou )')
 
     def read(self):
         if self.tokens_list.lookahead().lexeme == 'read':
@@ -1401,10 +1402,10 @@ class SyntacticAnalyzer:
                 self.read_params()
             else:
                 print("ERRO NO ESTADO READ!!!!!")
-                self.error_treatment('READ')
+                self.error_treatment('READ', '(')
         else:
             print("ERRO NO ESTADO READ!!!!!")
-            self.error_treatment('READ')
+            self.error_treatment('READ', 'read')
 
     def read_params(self):
         print("VAI PARA VARIABLE")
@@ -1423,10 +1424,10 @@ class SyntacticAnalyzer:
                 self.tokens_list.consume_token()
             else:
                 print("ERRO NO ESTADO READ LOOP!!!!!")
-                self.error_treatment('READLOOP')
+                self.error_treatment('READLOOP', ';')
         else:
             print("ERRO NO ESTADO READ LOOP!!!!!")
-            self.error_treatment('READLOOP')
+            self.error_treatment('READLOOP', ', ou )')
 
     def while_func(self):
         if self.tokens_list.lookahead().lexeme == 'while':
@@ -1445,19 +1446,19 @@ class SyntacticAnalyzer:
                             self.tokens_list.consume_token()
                         else:
                             print("ERRO NO ESTADO WHILE FUNC!!!!!")
-                            self.error_treatment('WHILEFUNC')
+                            self.error_treatment('WHILEFUNC', '}')
                     else:
                         print("ERRO NO ESTADO WHILE FUNC!!!!!")
-                        self.error_treatment('WHILEFUNC')
+                        self.error_treatment('WHILEFUNC', '{')
                 else:
                     print("ERRO NO ESTADO WHILE FUNC!!!!!")
-                    self.error_treatment('WHILEFUNC')
+                    self.error_treatment('WHILEFUNC', ')')
             else:
                 print("ERRO NO ESTADO WHILE FUNC!!!!!")
-                self.error_treatment('WHILEFUNC')
+                self.error_treatment('WHILEFUNC', '(')
         else:
             print("ERRO NO ESTADO WHILE FUNC!!!!!")
-            self.error_treatment('WHILEFUNC')
+            self.error_treatment('WHILEFUNC', 'while')
 
     def conditional(self):
         if self.tokens_list.lookahead().lexeme == 'if':
@@ -1480,19 +1481,19 @@ class SyntacticAnalyzer:
                                 self.else_part()
                             else:
                                 print("ERRO NO ESTADO CONDITIONAL!!!!!")
-                                self.error_treatment('CONDITIONAL')
+                                self.error_treatment('CONDITIONAL', '}')
                         else:
                             print("ERRO NO ESTADO CONDITIONAL!!!!!")
-                            self.error_treatment('CONDITIONAL')
+                            self.error_treatment('CONDITIONAL', '{')
                 else:
                     print("ERRO NO ESTADO CONDITIONAL!!!!!")
-                    self.error_treatment('CONDITIONAL')
+                    self.error_treatment('CONDITIONAL', ')')
             else:
                 print("ERRO NO ESTADO CONDITIONAL!!!!!")
-                self.error_treatment('CONDITIONAL')
+                self.error_treatment('CONDITIONAL', '(')
         else:
             print("ERRO NO ESTADO CONDITIONAL!!!!!")
-            self.error_treatment('CONDITIONAL')
+            self.error_treatment('CONDITIONAL', 'if')
 
     def else_part(self):
         if self.tokens_list.lookahead().lexeme == 'else':
@@ -1506,9 +1507,13 @@ class SyntacticAnalyzer:
 
     def error_treatment(self, state, expected_token):
         state_firsts = f.FirstsFollows.getFirsts(state)
-        print(str(self.tokens_list.lookahead().file_line) + ' ERRO: esperava um dos seguintes tokens: ', expected_token
-              + '. RECEBI: ',
+        print(str(self.tokens_list.lookahead().file_line) + ' ERRO SINTÁTICO ESPERAVA:', expected_token
+              + ' E RECEBI:',
               self.tokens_list.lookahead().lexeme)
         state_follows = f.FirstsFollows.getFollows(state)
-        while self.tokens_list.lookahead().lexeme not in state_follows and self.tokens_list.lookahead().lexeme != 'endOfFile($)':
+        print('FOLLOWS DESSE ESTADO:', state_follows)
+        while self.tokens_list.lookahead().lexeme not in state_follows and self.tokens_list.lookahead().lexeme_type not in state_follows and self.tokens_list.lookahead().lexeme not in state_firsts and self.tokens_list.lookahead().lexeme_type not in state_follows and self.tokens_list.lookahead().lexeme != 'endOfFile($)':
             self.tokens_list.consume_token()
+        if self.tokens_list.lookahead().lexeme in state_firsts:
+            getattr(self, inspect.currentframe().f_back.f_code.co_name)()
+            # self.struct_var_exp()
