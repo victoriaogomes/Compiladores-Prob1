@@ -1519,8 +1519,7 @@ class SyntacticAnalyzer:
                     self.tokens_list.consume_token()
 
     def error_treatment(self, state, expected_token):
-        if self.tokens_list.lookahead().lexeme_type not in {'SIB', 'NMF', 'CMF', 'OpMF'}:
-            self.output_list.add_token('ERRO SINTATICO ESPERAVA: ' + expected_token
+        self.output_list.add_token('ERRO SINTATICO ESPERAVA: ' + expected_token
                                        + ' E RECEBI:', self.tokens_list.lookahead().lexeme,
                                        self.tokens_list.lookahead().file_line)
         state_firsts = f.FirstsFollows.getFirsts(state)
@@ -1529,7 +1528,23 @@ class SyntacticAnalyzer:
               self.tokens_list.lookahead().lexeme)
         state_follows = f.FirstsFollows.getFollows(state)
         print('FOLLOWS DESSE ESTADO:', state_follows)
-        while self.tokens_list.lookahead().lexeme not in state_follows and self.tokens_list.lookahead().lexeme_type not in state_follows and self.tokens_list.lookahead().lexeme not in state_firsts and self.tokens_list.lookahead().lexeme_type not in state_follows and self.tokens_list.lookahead().lexeme != 'endOfFile($)':
-            self.tokens_list.consume_token()
-        if self.tokens_list.lookahead().lexeme in state_firsts:
-            getattr(self, inspect.currentframe().f_back.f_code.co_name)()
+        print('FIRSTS DESSE ESTADO:', state_firsts)
+        if state == 'STRUCTVAREXP' or state == 'STRUCTMATRIX' or state == 'CONTSTRUCTMATRIX':
+            self.next_struct_var()
+        elif state == 'VAREXP' or state == 'STRUCTURE' or state == 'CONTMATRIX' or state == 'VERIFVAR':
+            self.next_var()
+        elif state == 'VERIFCONST':
+            self.next_const()
+        else:
+            while self.tokens_list.lookahead().lexeme not in state_follows and self.tokens_list.lookahead().lexeme_type not in state_follows and self.tokens_list.lookahead().lexeme not in state_firsts and self.tokens_list.lookahead().lexeme_type not in state_follows and self.tokens_list.lookahead().lexeme != 'endOfFile($)':
+                self.tokens_list.consume_token()
+            if self.tokens_list.lookahead().lexeme in state_firsts or self.tokens_list.lookahead().lexeme_type in state_firsts:
+                getattr(self, inspect.currentframe().f_back.f_code.co_name)()
+
+        # elif self.tokens_list.lookahead().lexeme == '}' and (state.find('CONST') != -1 or state.find('VAR') != -1):
+        #     print('CONSUMI }')
+        #     self.tokens_list.consume_token()
+        #     if state.find('STRUCT') != -1 and self.tokens_list.lookahead().lexeme == '}':
+        #         print('CONSUMI DNV, ESTOU COM FOMI!')
+        #         self.tokens_list.consume_token()
+

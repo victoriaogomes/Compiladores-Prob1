@@ -91,7 +91,7 @@ def clear_comments(file, symbol_table):  # Método utilizado para remover os com
                 comentario_line = line  # Salvamos a linha onde o comentário de bloco começa
                 c = filesManager.read_char()
                 d = filesManager.read_char()
-                while c != '*' and d != '/':  # Continuamos lendo o arquivo até encontrarmos o fim dele ou um */
+                while c != '*' or d != '/':  # Continuamos lendo o arquivo até encontrarmos o fim dele ou um */
                     if c == '\n':
                         mensagem += '\n'
                         line += 1
@@ -129,5 +129,5 @@ for i in range(len(lista_arquivos)):  # Para cada arquivo presente no folder inp
     print('Foram encontrados erros lexicos\n') if (lexicalError or commentsError) else print('Não foram encontrados '
                                                                                              'erros lexicos\n')
 
-filesManager.clean_folder('auxiliar_files')  # Limpa o folder com arquivos auxiliares que foram criados para a análise
+# filesManager.clean_folder('auxiliar_files')  # Limpa o folder com arquivos auxiliares que foram criados para a análise
 lista_arquivos = filesManager.list_files('auxiliar_files')

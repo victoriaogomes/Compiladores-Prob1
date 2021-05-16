@@ -1,0 +1,28 @@
+1 PRE var
+2 DEL {
+3 PRE int
+3 IDE a
+3 DEL ;
+4 PRE int
+4 IDE x
+4 DEL ;
+6 PRE real
+6 IDE b
+6 DEL ;
+7 DEL }
+8 PRE start
+8 ERRO SINTATICO ESPERAVA: typedef ou struct ou const ou function ou procedure E RECEBI: start
+9 DEL {
+12 IDE b
+12 REL =
+12 NRO 1.2
+12 DEL ;
+13 IDE a
+13 REL =
+14 CoMF Fim de arquivo inesperado
+14 IDE b
+14 REL =
+14 NMF 5$
+14 DEL ;
+14 OpMF */
+14 ERRO SINTATICO ESPERAVA: typedef ou struct ou var ou const ou function ou procedure E RECEBI: Fim de arquivo inesperado

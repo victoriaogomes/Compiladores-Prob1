@@ -31,13 +31,18 @@ class TokenList:
 
     def lookahead(self):
         if self.current_index + 1 < len(self.tokens_list):
+            if self.tokens_list[self.current_index + 1] in {'SIB', 'NMF', 'CMF', 'OpMF'}:
+                self.consume_token()
             return self.tokens_list[self.current_index + 1]
         else:
             return self.endFileToken
 
     def consume_token(self):
-        if self.current_index < len(self.tokens_list):
+        if self.current_index + 1 < len(self.tokens_list):
             self.current_index += 1
-            return self.tokens_list[self.current_index]
+            if self.lookahead().lexeme_type in {'SIB', 'NMF', 'CMF', 'OpMF'}:
+                self.consume_token()
+            else:
+                return self.tokens_list[self.current_index]
         else:
             return self.endFileToken

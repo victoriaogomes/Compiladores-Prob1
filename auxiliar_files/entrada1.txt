@@ -77,7 +77,7 @@ function int JOTA () {
     print(i[jota][9],R8_VINTE.CASA[JOTA[788]]);
     return jota;
     k;
-    //opa garamba
+    
 }
 
 function boolean k(string n){

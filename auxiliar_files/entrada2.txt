@@ -1,0 +1,15 @@
+var
+{
+int a;
+int x;
+
+real b;
+}
+start
+{
+
+
+b =  1.2;
+a = 
+b = 5$; */
+
