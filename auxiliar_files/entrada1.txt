@@ -1,11 +1,29 @@
-procedure ano ){
-    if (nome == "vic") then{
-        print("hi");
+struct pessoa {
+    var{
+        String cpf, nome;
+        int anodatames[oi];
+        int idade, peso, altura;
     }
 }
 
-procedure start( {
-    print("abc");
+procedure start() {
+    ano(matriz[1][2], vetor[1], tchau);
+    if(pessoa.idade == 30) then{
+        ano();
+    }
+    else{
+        if(nome == "vic") then{
+            print(aha);
+        }
+        else{
+            if(ano == 2021){
+                print(ahauhu);
+            }
+        }
+    }
+    while(i > 10){
+        i++;
+    }
+    
 }
-
 
