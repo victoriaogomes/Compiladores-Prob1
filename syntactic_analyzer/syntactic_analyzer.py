@@ -1090,7 +1090,7 @@ class SyntacticAnalyzer:
 
     # Estado usado para auxiliar na declaração de uma expressão relacional
     def rel_exp2(self):
-        if self.tokens_list.lookahead().lexeme in {'>', '<', '==', '>=', '<='}:
+        if self.tokens_list.lookahead().lexeme in {'>', '<', '==', '>=', '<=', '!='}:
             print("VAI PARA REL SYMBOL")
             self.rel_symbol()
             print("VAI PARA ARIT EXP 1")
@@ -1100,11 +1100,11 @@ class SyntacticAnalyzer:
 
     # Estado que permite o uso dos símbolos relacionais dentro de uma expressão relacional
     def rel_symbol(self):
-        if self.tokens_list.lookahead().lexeme in {'>', '<', '==', '>=', '<='}:
+        if self.tokens_list.lookahead().lexeme in {'>', '<', '==', '>=', '<=', '!='}:
             self.tokens_list.consume_token()
         else:
             print("ERRO NO ESTADO REL SYMBOL!!!!!")
-            self.error_treatment('RELSYMBOL', '> ou < ou == ou >= ou  <=')
+            self.error_treatment('RELSYMBOL', '> ou < ou == ou >= ou <= ou !=')
 
     # Estado usado para iniciar a declaração de uma expressão aritmética
     def arit_exp1(self):
@@ -1726,7 +1726,7 @@ class SyntacticAnalyzer:
             self.missing_open_parenthesis(state)
         elif expected_token.find(')') != -1 and state in {'CONDITIONAL', 'STARTPROCEDURE', 'WHILEFUNC'}:
             self.missing_closing_parenthesis(state)
-        elif expected_token.find('then') != -1 and state == 'CONDITIONAL':
+        elif expected_token.find('then') != -1 and state == 'CONDITIONAL' and self.tokens_list.lookahead().lexeme == '{':
             self.missing_then()
         else:
             while self.tokens_list.lookahead().lexeme not in state_follows and \

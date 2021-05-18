@@ -1,14 +1,6 @@
-struct pessoa {
-    var{
-        String cpf, nome;
-        int anodatames[oi];
-        int idade, peso, altura;
-    }
-}
-
 procedure start() {
     ano(matriz[1][2], vetor[1], tchau);
-    if(pessoa.idade == 30) then{
+    if(false) then{
         ano();
     }
     else{
@@ -16,12 +8,12 @@ procedure start() {
             print(aha);
         }
         else{
-            if(ano == 2021){
+            if(ano == 2021) then{
                 print(ahauhu);
             }
         }
     }
-    while(i > 10){
+    while(true){
         i++;
     }
     
