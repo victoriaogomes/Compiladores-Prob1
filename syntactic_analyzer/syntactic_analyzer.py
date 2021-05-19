@@ -1,6 +1,8 @@
 from syntactic_analyzer import firsts_follows as f
 import inspect
 from copy import deepcopy
+from symbol_table import SymbolTable
+from symbol_table import TableLine
 
 
 class SyntacticAnalyzer:
@@ -8,6 +10,17 @@ class SyntacticAnalyzer:
     def __init__(self, tokens_list):
         self.tokens_list = tokens_list
         self.output_list = deepcopy(tokens_list)
+        self.global_table = SymbolTable(None)
+        self.Line = TableLine('', '', '', [], 0, '', ['', ''])
+        self.scope_index = 0
+        self.global_scope = True
+
+    def add_line_on_table(self, reset_type):
+        if not self.global_scope:
+            self.global_table.children[self.scope_index].add_child(deepcopy(self.Line))
+        else:
+            self.global_table.add_child(deepcopy(self.Line))
+        self.Line.reset_for(reset_type)
 
 # =====================================================================================================================
 # ==================================================== Code Scope =====================================================
@@ -123,6 +136,7 @@ class SyntacticAnalyzer:
             self.methods()
         elif self.tokens_list.lookahead().lexeme == 'procedure':
             self.tokens_list.consume_token()
+            self.Line.type = 'procedure'
             print("VAI PARA PROC CHOICE")
             self.proc_choice()
         else:
@@ -133,6 +147,10 @@ class SyntacticAnalyzer:
     def proc_choice(self):
         if self.tokens_list.lookahead().lexeme == 'start':
             self.tokens_list.consume_token()
+            self.Line.name = 'start'
+            self.add_line_on_table(0)
+            self.scope_index += 1
+            self.global_scope = False
             print("VAI PRA START PROCEDURE")
             self.start_procedure()
             if self.tokens_list.lookahead().lexeme != 'endOfFile($)':
@@ -204,8 +222,17 @@ class SyntacticAnalyzer:
     # incluído, pois o typedef pode ter sido usado para definir um novo tipo
     def data_type(self):
         if self.tokens_list.lookahead().lexeme in {'int', 'string', 'real', 'boolean'}:
+            if self.Line.type not in {'function', 'procedure'} or \
+                    (self.Line.data_type == '' and self.Line.type == 'function'):
+                self.Line.data_type = self.tokens_list.lookahead().lexeme
             self.tokens_list.consume_token()
         elif self.tokens_list.lookahead().lexeme_type == 'IDE':
+            if self.Line.type not in {'function', 'procedure'} or \
+                    (self.Line.data_type == '' and self.Line.type == 'function'):
+                if self.Line.data_type != '':
+                    self.Line.data_type = self.Line.data_type + '.' + self.tokens_list.lookahead().lexeme
+                else:
+                    self.Line.data_type = self.tokens_list.lookahead().lexeme
             self.tokens_list.consume_token()
         else:
             print("ERRO NO ESTADO data type!!!!!")
@@ -276,6 +303,7 @@ class SyntacticAnalyzer:
     def var_declaration(self):
         if self.tokens_list.lookahead().lexeme == 'var':
             self.tokens_list.consume_token()
+            self.Line.type = 'var'
             if self.tokens_list.lookahead().lexeme == '{':
                 self.tokens_list.consume_token()
                 print("VAI PRA FIRST VAR")
@@ -318,6 +346,7 @@ class SyntacticAnalyzer:
             self.var_id()
         elif self.tokens_list.lookahead().lexeme == '}':
             self.tokens_list.consume_token()
+            self.Line.reset_for(0)
         else:
             print("ERRO NO ESTADO NEXT VAR!!!!!")
             self.error_treatment('NEXTVAR', 'int ou real ou boolean ou struct ou string ou Identificador ou }')
@@ -326,6 +355,7 @@ class SyntacticAnalyzer:
     def continue_sos(self):
         if self.tokens_list.lookahead().lexeme == 'struct':
             self.tokens_list.consume_token()
+            self.Line.data_type = 'struct'
             print('VAI PRA DATATYPE')
             self.data_type()
         else:
@@ -335,6 +365,7 @@ class SyntacticAnalyzer:
     # Estado que define o identificador da variável que está sendo declarada
     def var_id(self):
         if self.tokens_list.lookahead().lexeme_type == 'IDE':
+            self.Line.name = self.tokens_list.lookahead().lexeme
             self.tokens_list.consume_token()
             print('VAI PRA VAR EXP')
             self.var_exp()
@@ -347,23 +378,31 @@ class SyntacticAnalyzer:
     # declaração de vetor
     def var_exp(self):
         if self.tokens_list.lookahead().lexeme == ',':
+            self.add_line_on_table(1)
             self.tokens_list.consume_token()
             print('VAI PRA VAR ID')
             self.var_id()
         elif self.tokens_list.lookahead().lexeme == '=':
             self.tokens_list.consume_token()
             print('VAI PRA EXPRESSION')
+            self.tokens_list.math_mode_switch()
             self.expression()
+            self.Line.value = self.tokens_list.expression
+            self.tokens_list.math_mode_switch()
             print('VAI PRA VERIF VAR')
             self.verif_var()
         elif self.tokens_list.lookahead().lexeme == ';':
+            self.add_line_on_table(2)
             self.tokens_list.consume_token()
             print('VAI PRA NEXT VAR')
             self.next_var()
         elif self.tokens_list.lookahead().lexeme == '[':
             self.tokens_list.consume_token()
             print('VAI PRA VECT MAT INDEX')
+            self.tokens_list.math_mode_switch()
             self.vect_mat_index()
+            self.Line.indexes[0] = self.tokens_list.expression
+            self.tokens_list.math_mode_switch()
             if self.tokens_list.lookahead().lexeme == ']':
                 self.tokens_list.consume_token()
                 print('VAI PRA STRUCTURE')
@@ -380,20 +419,28 @@ class SyntacticAnalyzer:
     # declarar uma matriz
     def structure(self):
         if self.tokens_list.lookahead().lexeme == ',':
+            self.add_line_on_table(1)
             self.tokens_list.consume_token()
             print('VAI PRA VAR ID')
             self.var_id()
         elif self.tokens_list.lookahead().lexeme == '=':
             self.tokens_list.consume_token()
             print('VAI PRA INIT ARRAY')
+            self.tokens_list.math_mode_switch()
             self.init_array()
+            self.Line.value = self.tokens_list.expression
+            self.tokens_list.math_mode_switch()
         elif self.tokens_list.lookahead().lexeme == ';':
             self.tokens_list.consume_token()
             print('VAI PRA NEXT VAR')
+            self.add_line_on_table(2)
             self.next_var()
         elif self.tokens_list.lookahead().lexeme == '[':
             self.tokens_list.consume_token()
+            self.tokens_list.math_mode_switch()
             self.vect_mat_index()
+            self.Line.indexes[1] = self.tokens_list.expression
+            self.tokens_list.math_mode_switch()
             if self.tokens_list.lookahead().lexeme == ']':
                 self.tokens_list.consume_token()
                 print('VAI PRA CONT MATRIX')
@@ -411,14 +458,19 @@ class SyntacticAnalyzer:
         if self.tokens_list.lookahead().lexeme == '=':
             self.tokens_list.consume_token()
             print('VAI PRA INIT MATRIX')
+            self.tokens_list.math_mode_switch()
             self.init_matrix()
+            self.Line.value = self.tokens_list.expression()
+            self.tokens_list.math_mode_switch()
         elif self.tokens_list.lookahead().lexeme == ',':
             self.tokens_list.consume_token()
             print('VAI PRA VAR ID')
+            self.add_line_on_table(1)
             self.var_id()
         elif self.tokens_list.lookahead().lexeme == ';':
+            self.add_line_on_table(2)
             self.tokens_list.consume_token()
-            print('VAI PRA EXPRESSION')
+            print('VAI PRA NEXT VAR')
             self.next_var()
         else:
             print("ERRO NO CONT MATRIX!!!!!")
@@ -429,6 +481,7 @@ class SyntacticAnalyzer:
         if self.tokens_list.lookahead().lexeme == '[':
             self.tokens_list.consume_token()
             print("VAI PARA EXPRESSION")
+            self.tokens_list.math_mode_switch()
             self.expression()
             print("VAI PARA NEXT ARRAY")
             self.next_array()
@@ -446,6 +499,8 @@ class SyntacticAnalyzer:
             self.next_array()
         elif self.tokens_list.lookahead().lexeme == ']':
             self.tokens_list.consume_token()
+            self.Line.value = self.tokens_list.expression
+            self.tokens_list.math_mode_switch()
             print("VAI PARA VERIF VAR")
             self.verif_var()
         else:
@@ -456,6 +511,7 @@ class SyntacticAnalyzer:
     def init_matrix(self):
         if self.tokens_list.lookahead().lexeme == '[':
             self.tokens_list.consume_token()
+            self.tokens_list.math_mode_switch()
             print("VAI PARA MATRIZ VALUE")
             self.matrix_value()
         else:
@@ -498,6 +554,8 @@ class SyntacticAnalyzer:
             self.matrix_value()
         elif self.tokens_list.lookahead().lexeme == ']':
             self.tokens_list.consume_token()
+            self.Line.value = self.tokens_list.expression
+            self.tokens_list.math_mode_switch()
             self.verif_var()
         else:
             print("ERRO NO ESTADO NEXT!!!!!")
@@ -507,10 +565,12 @@ class SyntacticAnalyzer:
     def verif_var(self):
         if self.tokens_list.lookahead().lexeme == ',':
             self.tokens_list.consume_token()
+            self.add_line_on_table(1)
             print("VAI PARA VAR ID")
             self.var_id()
         elif self.tokens_list.lookahead().lexeme == ';':
             self.tokens_list.consume_token()
+            self.add_line_on_table(2)
             print("VAI PARA NEXT VAR")
             self.next_var()
         else:
@@ -524,6 +584,7 @@ class SyntacticAnalyzer:
     def const_declaration(self):
         if self.tokens_list.lookahead().lexeme == 'const':
             self.tokens_list.consume_token()
+            self.Line.type = 'const'
             if self.tokens_list.lookahead().lexeme == '{':
                 self.tokens_list.consume_token()
                 print("VAI PARA FIRST CONST")
@@ -546,6 +607,7 @@ class SyntacticAnalyzer:
     def continue_const_sos(self):
         if self.tokens_list.lookahead().lexeme == 'struct':
             self.tokens_list.consume_token()
+            self.Line.data_type = 'struct'
             print("VAI PARA DATA TYPE")
             self.data_type()
         else:
@@ -557,6 +619,7 @@ class SyntacticAnalyzer:
     def next_const(self):
         if self.tokens_list.lookahead().lexeme == '}':
             self.tokens_list.consume_token()
+            self.Line.reset_for(0)
         else:
             print("VAI PARA CONTINUE CONST SOS")
             self.continue_const_sos()
@@ -566,6 +629,7 @@ class SyntacticAnalyzer:
     # Estado que define o identificador da constante que está sendo declarada
     def const_id(self):
         if self.tokens_list.lookahead().lexeme_type == 'IDE':
+            self.Line.name = self.tokens_list.lookahead().lexeme
             self.tokens_list.consume_token()
             print("VAI PARA CONST EXP")
             self.const_exp()
@@ -579,13 +643,19 @@ class SyntacticAnalyzer:
         if self.tokens_list.lookahead().lexeme == '=':
             self.tokens_list.consume_token()
             print("VAI PARA EXPRESSION")
+            self.tokens_list.math_mode_switch()
             self.expression()
+            self.Line.value = self.tokens_list.expression
+            self.tokens_list.math_mode_switch()
             print("VAI PARA VERIF CONST")
             self.verif_const()
         elif self.tokens_list.lookahead().lexeme == '[':
             self.tokens_list.consume_token()
             print("VAI PARA VECT MAT INDEX")
+            self.tokens_list.math_mode_switch()
             self.vect_mat_index()
+            self.Line.indexes[0] = self.tokens_list.expression
+            self.tokens_list.math_mode_switch()
             if self.tokens_list.lookahead().lexeme == ']':
                 self.tokens_list.consume_token()
                 print("VAI PARA CONT STRUCTURE")
@@ -598,13 +668,17 @@ class SyntacticAnalyzer:
     def const_structure(self):
         if self.tokens_list.lookahead().lexeme == '[':
             self.tokens_list.consume_token()
+            self.tokens_list.math_mode_switch()
             print("VAI PARA VECT MAT INDEX")
             self.vect_mat_index()
+            self.Line.indexes[1] = self.tokens_list.expression
+            self.tokens_list.math_mode_switch()
             if self.tokens_list.lookahead().lexeme == ']':
                 self.tokens_list.consume_token()
                 if self.tokens_list.lookahead().lexeme == '=':
                     self.tokens_list.consume_token()
                     print("VAI PARA INIT CONST MATRIX")
+                    self.tokens_list.math_mode_switch()
                     self.init_const_matrix()
                 else:
                     print("ERRO NO ESTADO CONST STRUCTURE!!!!!")
@@ -616,6 +690,7 @@ class SyntacticAnalyzer:
             self.tokens_list.consume_token()
             if self.tokens_list.lookahead().lexeme == '[':
                 self.tokens_list.consume_token()
+                self.tokens_list.math_mode_switch()
                 print("VAI PARA EXPRESSION")
                 self.expression()
                 print("VAI PARA NEXT CONST ARRAY")
@@ -637,6 +712,8 @@ class SyntacticAnalyzer:
             self.next_const_array()
         elif self.tokens_list.lookahead().lexeme == ']':
             self.tokens_list.consume_token()
+            self.Line.value = self.tokens_list.expression
+            self.tokens_list.math_mode_switch()
             print("VAI PARA VERIF CONST")
             self.verif_const()
         else:
@@ -689,6 +766,8 @@ class SyntacticAnalyzer:
             self.matrix_const_value()
         elif self.tokens_list.lookahead().lexeme == ']':
             self.tokens_list.consume_token()
+            self.Line.value = self.tokens_list.expression
+            self.tokens_list.math_mode_switch()
             print("VAI PARA VERIF CONST")
             self.verif_const()
         else:
@@ -699,10 +778,12 @@ class SyntacticAnalyzer:
     def verif_const(self):
         if self.tokens_list.lookahead().lexeme == ',':
             self.tokens_list.consume_token()
+            self.add_line_on_table(1)
             print("VAI PARA CONST ID")
             self.const_id()
         elif self.tokens_list.lookahead().lexeme == ';':
             self.tokens_list.consume_token()
+            self.add_line_on_table(2)
             print("VAI PARA NEXT CONST")
             self.next_const()
         else:
@@ -716,9 +797,11 @@ class SyntacticAnalyzer:
     def function(self):
         if self.tokens_list.lookahead().lexeme == 'function':
             self.tokens_list.consume_token()
+            self.Line.type = 'function'
             print("VAI PARA DATA TYPE")
             self.data_type()
             if self.tokens_list.lookahead().lexeme_type == 'IDE':
+                self.Line.name = self.tokens_list.lookahead().lexeme
                 self.tokens_list.consume_token()
                 if self.tokens_list.lookahead().lexeme == '(':
                     self.tokens_list.consume_token()
@@ -758,9 +841,11 @@ class SyntacticAnalyzer:
     def parameters(self):
         if self.tokens_list.lookahead().lexeme in {'int', 'real', 'string',
                                                    'boolean'} or self.tokens_list.lookahead().lexeme_type == 'IDE':
+            self.Line.params.append(self.tokens_list.lookahead().lexeme)
             print("VAI PARA DATA TYPE")
             self.data_type()
             if self.tokens_list.lookahead().lexeme_type == 'IDE':
+                self.Line.params[-1] += '.' + self.tokens_list.lookahead().lexeme
                 self.tokens_list.consume_token()
                 print("VAI PARA PARAM LOOP")
                 self.param_loop()
@@ -768,10 +853,13 @@ class SyntacticAnalyzer:
                 print("ERRO NO ESTADO PARAMETERS!!!!!")
                 self.error_treatment('PARAMETERS', 'Identificador')
         elif self.tokens_list.lookahead().lexeme == 'struct':
+            self.Line.params.append('struct')
             self.tokens_list.consume_token()
+            self.Line.params[-1] += '.' + self.tokens_list.lookahead().lexeme
             print("VAI PARA DATA TYPE")
             self.data_type()
             if self.tokens_list.lookahead().lexeme_type == 'IDE':
+                self.Line.params[-1] += '.' + self.tokens_list.lookahead().lexeme
                 self.tokens_list.consume_token()
                 print("VAI PARA PARAM LOOP")
                 self.param_loop()
@@ -789,6 +877,9 @@ class SyntacticAnalyzer:
             print("VAI PARA PARAMETERS")
             self.parameters()
         elif self.tokens_list.lookahead().lexeme == ')':
+            self.add_line_on_table(0)
+            self.scope_index += 1
+            self.global_scope = False
             self.tokens_list.consume_token()
         else:
             print("ERRO NO ESTADO PARAM LOOP!!!!!")
@@ -804,6 +895,7 @@ class SyntacticAnalyzer:
                 self.tokens_list.consume_token()
                 if self.tokens_list.lookahead().lexeme == '}':
                     self.tokens_list.consume_token()
+                    self.global_scope = True
                 else:
                     print("ERRO NO ESTADO BLOCK FUNCTION!!!!!")
                     self.error_treatment('BLOCKFUNCTION', '}')
@@ -877,7 +969,9 @@ class SyntacticAnalyzer:
     def structure_declaration(self):
         if self.tokens_list.lookahead().lexeme == 'struct':
             self.tokens_list.consume_token()
+            self.Line.type = 'struct'
             if self.tokens_list.lookahead().lexeme_type == 'IDE':
+                self.Line.name = self.tokens_list.lookahead().lexeme
                 self.tokens_list.consume_token()
                 print("VAI PARA STRUCT VARS")
                 self.struct_vars()
@@ -908,6 +1002,7 @@ class SyntacticAnalyzer:
         elif self.tokens_list.lookahead().lexeme == 'extends':
             self.tokens_list.consume_token()
             if self.tokens_list.lookahead().lexeme_type == 'IDE':
+                self.Line.data_type  = self.tokens_list.lookahead().lexeme
                 self.tokens_list.consume_token()
                 if self.tokens_list.lookahead().lexeme == '{':
                     self.tokens_list.consume_token()

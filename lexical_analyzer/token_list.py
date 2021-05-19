@@ -14,6 +14,8 @@ class TokenList:
         self.printable = ''
         self.current_index = -1
         self.endFileToken = tokens.Token('EOF', 'endOfFile($)', 0)
+        self.expression = ''
+        self.math_mode = False
 
     def add_token(self, lexeme_type, lexeme_text, line):
         # Método utilizado para adicionar um novo token na tabela de símbolos
@@ -43,6 +45,12 @@ class TokenList:
             if self.lookahead().lexeme_type in {'SIB', 'NMF', 'CMF', 'OpMF'}:
                 self.consume_token()
             else:
+                if self.math_mode:
+                    self.expression = self.expression + self.tokens_list[self.current_index]
                 return self.tokens_list[self.current_index]
         else:
             return self.endFileToken
+
+    def math_mode_switch(self):
+        self.math_mode = not self.math_mode
+        self.expression = ''
