@@ -1031,6 +1031,7 @@ class SyntacticAnalyzer:
     # Declaração da primeira variável da struct, pois é necessária no mínimo uma
     def first_struct_var(self):
         print("VAI PARA DATA TYPE")
+        self.Line.params.append(self.tokens_list.lookahead().lexeme)
         self.data_type()
         print("VAI PARA STRUCT VAR ID")
         self.struct_var_id()
@@ -1038,6 +1039,7 @@ class SyntacticAnalyzer:
     # Declaração do id da variável da struct
     def struct_var_id(self):
         if self.tokens_list.lookahead().lexeme_type == 'IDE':
+            self.Line.params[-1] += '.' + self.tokens_list.lookahead().lexeme
             self.tokens_list.consume_token()
             print("VAI PARA STRUCT VAR EXP")
             self.struct_var_exp()
@@ -1051,15 +1053,13 @@ class SyntacticAnalyzer:
             self.tokens_list.consume_token()
             if self.tokens_list.lookahead().lexeme == '}':
                 self.tokens_list.consume_token()
+                self.add_line_on_table(0)
             else:
                 print("ERRO NO ESTADO NEXT STRUCT VAR!!!!!")
                 self.error_treatment('NEXTSTRUCTVAR', '}')
-        elif self.tokens_list.lookahead().lexeme_type == 'IDE':
-            print("VAI PARA DATA TYPE")
-            self.data_type()
-            print("VAI PARA STRUCT VAR ID")
-            self.struct_var_id()
-        elif self.tokens_list.lookahead().lexeme in {'int', 'real', 'string', 'boolean'}:
+        elif self.tokens_list.lookahead().lexeme_type == 'IDE' or \
+                self.tokens_list.lookahead().lexeme in {'int', 'real', 'string', 'boolean'}:
+            self.Line.params.append(self.tokens_list.lookahead().lexeme)
             print("VAI PARA DATA TYPE")
             self.data_type()
             print("VAI PARA STRUCT VAR ID")
@@ -1072,6 +1072,7 @@ class SyntacticAnalyzer:
     # desse tipo de variável ou iniciar a declaração de um vetor
     def struct_var_exp(self):
         if self.tokens_list.lookahead().lexeme == ',':
+            self.Line.params.append(self.Line.params[-1].split(sep='.')[0])
             self.tokens_list.consume_token()
             print("VAI PARA STRUCT VAR ID")
             self.struct_var_id()
@@ -1081,7 +1082,10 @@ class SyntacticAnalyzer:
             self.next_struct_var()
         elif self.tokens_list.lookahead().lexeme == '[':
             self.tokens_list.consume_token()
+            self.tokens_list.math_mode_switch()
             self.vect_mat_index()
+            self.Line.params[-1] += '.' + self.tokens_list.expression
+            self.tokens_list.math_mode_switch()
             if self.tokens_list.lookahead().lexeme == ']':
                 self.tokens_list.consume_token()
                 print("VAI PARA STRUCT MATRIX")
@@ -1097,7 +1101,10 @@ class SyntacticAnalyzer:
     def struct_matrix(self):
         if self.tokens_list.lookahead().lexeme == '[':
             self.tokens_list.consume_token()
+            self.tokens_list.math_mode_switch()
             self.vect_mat_index()
+            self.Line.params[-1] = '.' + self.tokens_list.expression
+            self.tokens_list.math_mode_switch()
             if self.tokens_list.lookahead().lexeme == ']':
                 self.tokens_list.consume_token()
                 print("VAI PARA CONT STRUCT MATRIX")
@@ -1107,6 +1114,7 @@ class SyntacticAnalyzer:
                 self.error_treatment('STRUCTMATRIX', ']')
         elif self.tokens_list.lookahead().lexeme == ',':
             self.tokens_list.consume_token()
+            self.Line.params.append(self.Line.params[-1].split(sep='.')[0])
             print("VAI PARA STRUCT VAR ID")
             self.struct_var_id()
         elif self.tokens_list.lookahead().lexeme == ';':
@@ -1120,6 +1128,7 @@ class SyntacticAnalyzer:
     # Estado para auxiliar a declaração de matriz dentro do bloco var da struct
     def cont_struct_matrix(self):
         if self.tokens_list.lookahead().lexeme == ',':
+            self.Line.params.append(self.Line.params[-1].split(sep='.')[0])
             self.tokens_list.consume_token()
             print("VAI PARA VAR ID")
             self.struct_var_id()
@@ -1294,6 +1303,7 @@ class SyntacticAnalyzer:
     # Estado que inicia a declaração de um typedef
     def typedef_declaration(self):
         if self.tokens_list.lookahead().lexeme == 'typedef':
+            self.Line.type = 'typedef'
             self.tokens_list.consume_token()
             print("VAI PARA CONT TYPEDEF DEC")
             self.cont_typedef_dec()
@@ -1304,12 +1314,16 @@ class SyntacticAnalyzer:
     # Estado auxiliar na declaração de um typedef
     def cont_typedef_dec(self):
         if self.tokens_list.lookahead().lexeme == 'struct':
+            self.Line.data_type = 'struct'
             self.tokens_list.consume_token()
             if self.tokens_list.lookahead().lexeme_type == 'IDE':
+                self.Line.data_type += '.' + self.tokens_list.lookahead().lexeme
                 self.tokens_list.consume_token()
                 if self.tokens_list.lookahead().lexeme_type == 'IDE':
+                    self.Line.name = self.tokens_list.lookahead().lexeme
                     self.tokens_list.consume_token()
                     if self.tokens_list.lookahead().lexeme == ';':
+                        self.add_line_on_table(0)
                         self.tokens_list.consume_token()
                     else:
                         print("ERRO NO ESTADO CONT TYPEDEF DEC!!!!!")
@@ -1325,8 +1339,10 @@ class SyntacticAnalyzer:
             print("VAI PARA DATA TYPE")
             self.data_type()
             if self.tokens_list.lookahead().lexeme_type == 'IDE':
+                self.Line.name = self.tokens_list.lookahead().lexeme
                 self.tokens_list.consume_token()
                 if self.tokens_list.lookahead().lexeme == ';':
+                    self.add_line_on_table(0)
                     self.tokens_list.consume_token()
                 else:
                     print("ERRO NO ESTADO CONT TYPEDEF DEC!!!!!")
@@ -1364,6 +1380,7 @@ class SyntacticAnalyzer:
     # Estado utilizado para a criação de um procedure qualquer
     def procedure(self):
         if self.tokens_list.lookahead().lexeme_type == 'IDE':
+            self.Line.name = self.tokens_list.lookahead().lexeme
             self.tokens_list.consume_token()
             if self.tokens_list.lookahead().lexeme == '(':
                 self.tokens_list.consume_token()
@@ -1371,6 +1388,8 @@ class SyntacticAnalyzer:
                 self.proc_param()
                 if self.tokens_list.lookahead().lexeme == '{':
                     self.tokens_list.consume_token()
+                    self.scope_index += 1
+                    self.global_scope = False
                     print("VAI PARA PROC CONTENT")
                     self.proc_content()
                 else:
@@ -1381,7 +1400,7 @@ class SyntacticAnalyzer:
                 self.error_treatment('PROCEDURE', '(')
         else:
             print("ERRO NO ESTADO PROCEDURE!!!!!")
-            self.error_treatment('PROCEDURE', 'IDentificador')
+            self.error_treatment('PROCEDURE', 'Identificador')
 
     # Estado que permite a adição de nenhum ou vários parâmetros para esse procedure
     def proc_param(self):
