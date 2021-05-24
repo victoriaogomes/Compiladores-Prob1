@@ -123,11 +123,14 @@ for i in range(len(lista_arquivos)):  # Para cada arquivo presente no folder inp
     lexicalError = identify_lexemes(lista_arquivos[i], tableList[i])  # Analisamos lexicamente o conteúdo do arquivo
     filesManager.close_file()
     print('--- Conclusão da análise léxica do arquivo', lista_arquivos[i])
+    print('Foram encontrados erros lexicos\n') if (lexicalError or commentsError) else print('Não foram encontrados '
+                                                                                             'erros lexicos\n')
     analyzer = s_analyzer.SyntacticAnalyzer(tableList[-1])
     analyzer.start()
     filesManager.write_symbol_table(analyzer.output_list.get_tokens(), lista_arquivos[i])
-    print('Foram encontrados erros lexicos\n') if (lexicalError or commentsError) else print('Não foram encontrados '
-                                                                                             'erros lexicos\n')
+    print('--- Conclusão da análise sintática do arquivo', lista_arquivos[i])
+    print('Foram encontrados erros sintaticos\n') if analyzer.error else print('Não foram encontrados '
+                                                                                             'erros sintaticos\n')
 
 # filesManager.clean_folder('auxiliar_files')  # Limpa o folder com arquivos auxiliares que foram criados para a análise
 lista_arquivos = filesManager.list_files('auxiliar_files')

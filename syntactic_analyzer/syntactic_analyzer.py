@@ -1,8 +1,7 @@
 from syntactic_analyzer import firsts_follows as f
 import inspect
 from copy import deepcopy
-from symbol_table import SymbolTable
-from symbol_table import TableLine
+from syntactic_analyzer import symbol_table as s
 
 
 class SyntacticAnalyzer:
@@ -10,16 +9,21 @@ class SyntacticAnalyzer:
     def __init__(self, tokens_list):
         self.tokens_list = tokens_list
         self.output_list = deepcopy(tokens_list)
-        self.global_table = SymbolTable(None)
-        self.Line = TableLine('', '', '', [], 0, '', ['', ''])
-        self.scope_index = 0
+        self.global_table = s.SymbolTable(None)
+        self.Line = s.TableLine('', '', '', [], 0, '', ['', ''])
+        self.scope_index = -1
         self.global_scope = True
+        self.error = False
+
+    def add_new_symb_table(self):
+        self.scope_index += 1
+        self.global_table.add_child(s.SymbolTable(self.global_table))
 
     def add_line_on_table(self, reset_type):
         if not self.global_scope:
-            self.global_table.children[self.scope_index].add_child(deepcopy(self.Line))
+            self.global_table.children[self.scope_index].add_line(deepcopy(self.Line))
         else:
-            self.global_table.add_child(deepcopy(self.Line))
+            self.global_table.add_line(deepcopy(self.Line))
         self.Line.reset_for(reset_type)
 
 # =====================================================================================================================
@@ -148,9 +152,6 @@ class SyntacticAnalyzer:
         if self.tokens_list.lookahead().lexeme == 'start':
             self.tokens_list.consume_token()
             self.Line.name = 'start'
-            self.add_line_on_table(0)
-            self.scope_index += 1
-            self.global_scope = False
             print("VAI PRA START PROCEDURE")
             self.start_procedure()
             if self.tokens_list.lookahead().lexeme != 'endOfFile($)':
@@ -222,12 +223,12 @@ class SyntacticAnalyzer:
     # incluído, pois o typedef pode ter sido usado para definir um novo tipo
     def data_type(self):
         if self.tokens_list.lookahead().lexeme in {'int', 'string', 'real', 'boolean'}:
-            if self.Line.type not in {'function', 'procedure'} or \
+            if self.Line.type not in {'function', 'procedure', 'struct'} or \
                     (self.Line.data_type == '' and self.Line.type == 'function'):
                 self.Line.data_type = self.tokens_list.lookahead().lexeme
             self.tokens_list.consume_token()
         elif self.tokens_list.lookahead().lexeme_type == 'IDE':
-            if self.Line.type not in {'function', 'procedure'} or \
+            if self.Line.type not in {'function', 'procedure', 'struct'} or \
                     (self.Line.data_type == '' and self.Line.type == 'function'):
                 if self.Line.data_type != '':
                     self.Line.data_type = self.Line.data_type + '.' + self.tokens_list.lookahead().lexeme
@@ -877,9 +878,6 @@ class SyntacticAnalyzer:
             print("VAI PARA PARAMETERS")
             self.parameters()
         elif self.tokens_list.lookahead().lexeme == ')':
-            self.add_line_on_table(0)
-            self.scope_index += 1
-            self.global_scope = False
             self.tokens_list.consume_token()
         else:
             print("ERRO NO ESTADO PARAM LOOP!!!!!")
@@ -889,6 +887,9 @@ class SyntacticAnalyzer:
     def block_function(self):
         if self.tokens_list.lookahead().lexeme == '{':
             self.tokens_list.consume_token()
+            self.add_line_on_table(0)
+            self.add_new_symb_table()
+            self.global_scope = False
             print("VAI PARA BLOCK FUNCTION CONTENT")
             self.block_function_content()
             if self.tokens_list.lookahead().lexeme == ';':
@@ -1366,6 +1367,9 @@ class SyntacticAnalyzer:
                 if self.tokens_list.lookahead().lexeme == '{':
                     self.tokens_list.consume_token()
                     print("VAI PARA PROC CONTENT")
+                    self.add_line_on_table(0)
+                    self.add_new_symb_table()
+                    self.global_scope = False
                     self.proc_content()
                 else:
                     print("ERRO NO ESTADO START PROCEDURE!!!!!")
@@ -1388,7 +1392,8 @@ class SyntacticAnalyzer:
                 self.proc_param()
                 if self.tokens_list.lookahead().lexeme == '{':
                     self.tokens_list.consume_token()
-                    self.scope_index += 1
+                    self.add_line_on_table(0)
+                    self.add_new_symb_table()
                     self.global_scope = False
                     print("VAI PARA PROC CONTENT")
                     self.proc_content()
@@ -1432,6 +1437,7 @@ class SyntacticAnalyzer:
             self.code()
             if self.tokens_list.lookahead().lexeme == '}':
                 self.tokens_list.consume_token()
+                self.global_scope = True
             else:
                 print("ERRO NO ESTADO PROC CONTENT!!!!!")
                 self.error_treatment('PROCCONTENT', '}')
@@ -1448,6 +1454,7 @@ class SyntacticAnalyzer:
             self.code()
             if self.tokens_list.lookahead().lexeme == '}':
                 self.tokens_list.consume_token()
+                self.global_scope = True
             else:
                 print("ERRO NO ESTADO PROC CONTENT2!!!!!")
                 self.error_treatment('PROCCONTENT2', '}')
@@ -1464,6 +1471,7 @@ class SyntacticAnalyzer:
             self.code()
             if self.tokens_list.lookahead().lexeme == '}':
                 self.tokens_list.consume_token()
+                self.global_scope = True
             else:
                 print("ERRO NO ESTADO PROC CONTENT3!!!!!")
                 self.error_treatment('PROCCONTENT3', '}')
@@ -1474,6 +1482,7 @@ class SyntacticAnalyzer:
         self.code()
         if self.tokens_list.lookahead().lexeme == '}':
             self.tokens_list.consume_token()
+            self.global_scope = True
         else:
             print("ERRO NO ESTADO PROC CONTENT4!!!!!")
             self.error_treatment('PROCCONTENT4', '}')
@@ -1533,6 +1542,10 @@ class SyntacticAnalyzer:
         if self.tokens_list.lookahead().lexeme == '(':
             print("VAI PARA FUNCTION CALL")
             self.function_call()
+            if self.tokens_list.lookahead().lexeme == ';':
+                self.tokens_list.consume_token()
+            else:
+                self.error_treatment('OTHERCOMMANDS', ';')
         else:
             print("VAI PARA CONT ELEMENT")
             self.cont_element()
@@ -1674,11 +1687,11 @@ class SyntacticAnalyzer:
             self.f_call_params()
         elif self.tokens_list.lookahead().lexeme == ')':
             self.tokens_list.consume_token()
-            if self.tokens_list.lookahead().lexeme == ';':
-                self.tokens_list.consume_token()
-            else:
-                print("ERRO NO ESTADO F CALL PARAMS!!!!!")
-                self.error_treatment('FCALLPARAMS', ';')
+            # if self.tokens_list.lookahead().lexeme == ';':
+            #     self.tokens_list.consume_token()
+            # else:
+            #     print("ERRO NO ESTADO F CALL PARAMS!!!!!")
+            #     self.error_treatment('FCALLPARAMS', ';')
         else:
             print("ERRO NO ESTADO F CALL PARAMS!!!!!")
             self.error_treatment('FCALLPARAMS', ', ou )')
@@ -1814,6 +1827,7 @@ class SyntacticAnalyzer:
 # =====================================================================================================================
 # =============================================== Erros treatment =====================================================
     def error_treatment(self, state, expected_token):
+        self.error = True
         self.output_list.add_token('ERRO SINTATICO ESPERAVA: ' + expected_token
                                    + ' E RECEBI:', self.tokens_list.lookahead().lexeme,
                                    self.tokens_list.lookahead().file_line)

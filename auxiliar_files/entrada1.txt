@@ -1,5 +1,5 @@
 procedure start() {
-    ano(matriz[10][2], vetor[1], tchau);
+    ano(matriz[1][2], vetor[1], tchau);
     if(false) then{
         ano();
     }

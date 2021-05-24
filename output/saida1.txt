@@ -32,6 +32,7 @@
 4 DEL )
 4 DEL ;
 5 DEL }
+5 ERRO SINTATICO ESPERAVA: ; E RECEBI: }
 6 PRE else
 6 DEL {
 7 PRE if

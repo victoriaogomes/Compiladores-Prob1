@@ -46,7 +46,7 @@ class TokenList:
                 self.consume_token()
             else:
                 if self.math_mode:
-                    self.expression = self.expression + self.tokens_list[self.current_index]
+                    self.expression = self.expression + self.tokens_list[self.current_index].lexeme
                 return self.tokens_list[self.current_index]
         else:
             return self.endFileToken
