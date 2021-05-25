@@ -15,6 +15,7 @@ struct funcionario extends pessoa{
     }
 }
 typedef struct Pessoa Pessoa;
+typedef Pessoa homem;
 typedef frase faa;
 
 var{
@@ -27,6 +28,7 @@ var{
 function int soma (int a , int b){
     var {
           int c;
+          struct funcionario Italo;
     }
     5 = 10 + 20;
     c = ((b+c) * (a+b)) / c;

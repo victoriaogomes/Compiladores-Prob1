@@ -1,3 +1,5 @@
+typedef struct pessoa Person;
+
 procedure start() {
     ano(matriz[1][2], vetor[1], tchau);
     if(false) then{

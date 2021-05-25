@@ -2,6 +2,8 @@ from syntactic_analyzer import firsts_follows as f
 import inspect
 from copy import deepcopy
 from syntactic_analyzer import symbol_table as s
+from syntactic_analyzer import expressions as expr
+from syntactic_analyzer import statements as stmt
 
 
 class SyntacticAnalyzer:
@@ -14,6 +16,7 @@ class SyntacticAnalyzer:
         self.scope_index = -1
         self.global_scope = True
         self.error = False
+        self.program = []
 
     def add_new_symb_table(self):
         self.scope_index += 1
@@ -35,30 +38,31 @@ class SyntacticAnalyzer:
     def start(self):
         if self.tokens_list.lookahead().lexeme == 'typedef':
             print("VAI PARA TYPEDEF DECLARATION")
-            self.typedef_declaration()
+            self.program.append(self.typedef_declaration())
             print("VAI PARA START")
             self.start()
         elif self.tokens_list.lookahead().lexeme == 'struct':
             print("VAI PARA STRUCT DECLARATION")
-            self.structure_declaration()
+            self.program.append(self.structure_declaration())
             print("VAI PARA START")
             self.start()
         elif self.tokens_list.lookahead().lexeme == 'var':
             print("VAI PARA VAR DECLARATION")
-            self.var_declaration()
+            # self.program.append(self.var_declaration())
             print("VAI PARA HEADER 1")
             self.header1()
         elif self.tokens_list.lookahead().lexeme == 'const':
             print("VAI PARA CONST DECLARATION")
-            self.const_declaration()
+            # self.program.append(self.const_declaration())
             print("VAI PARA HEADER 2")
             self.header2()
         elif self.tokens_list.lookahead().lexeme in {'function', 'procedure'}:
             print("VAI PARA METHODS")
-            self.methods()
+            # self.program.append(self.methods())
         else:
             print("ERRO NO ESTADO INICIAL!!!!!")
             self.error_treatment('START', 'typedef ou struct ou var ou const ou function ou procedure')
+        return self.program
 
     # Estado chamado caso o usuário declare um bloco var, para que não seja possível adicionar outro bloco desse tipo
     # fora de uma function ou procedure
@@ -1307,10 +1311,11 @@ class SyntacticAnalyzer:
             self.Line.type = 'typedef'
             self.tokens_list.consume_token()
             print("VAI PARA CONT TYPEDEF DEC")
-            self.cont_typedef_dec()
+            return self.cont_typedef_dec()
         else:
             print("ERRO NO ESTADO TYPEDEF DECLARATION!!!!!")
             self.error_treatment('TYPEDEFDECLARATION', 'typedef')
+            return None
 
     # Estado auxiliar na declaração de um typedef
     def cont_typedef_dec(self):
@@ -1324,8 +1329,10 @@ class SyntacticAnalyzer:
                     self.Line.name = self.tokens_list.lookahead().lexeme
                     self.tokens_list.consume_token()
                     if self.tokens_list.lookahead().lexeme == ';':
+                        aux = stmt.Typedef(self.Line.name, self.Line.data_type)
                         self.add_line_on_table(0)
                         self.tokens_list.consume_token()
+                        return aux
                     else:
                         print("ERRO NO ESTADO CONT TYPEDEF DEC!!!!!")
                         self.error_treatment('CONTTYPEDEFDEC', ';')
@@ -1354,6 +1361,7 @@ class SyntacticAnalyzer:
         else:
             print("ERRO NO ESTADO CONT TYPEDEF DEC!!!!!")
             self.error_treatment('CONTTYPEDEFDEC', 'struct ou int ou real ou string ou boolean ou Identificador')
+        return None
 
 # =====================================================================================================================
 # ================================================== Procedures =======================================================
