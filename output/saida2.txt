@@ -1,6 +1,5 @@
 1 PRE const
 1 DEL {
-1 ERRO SINTATICO ESPERAVA: typedef ou struct ou var ou function ou procedure E RECEBI: const
 2 PRE real
 2 IDE PI
 2 REL =

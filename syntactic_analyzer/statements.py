@@ -75,23 +75,46 @@ class Returnf(Stmt):
 
 
 class Var(Stmt):
-    # var_name: nome da variável
-    def __init__(self, name, init_val):
+    # names: nomes das variáveis
+    def __init__(self, name, init_val, tp, index_array=-1, index_matrix=-1):
         self.name = name
-        self.init_value = init_val
+        self.init_val = init_val
+        self.tp = tp
+        self.index_array = index_array
+        self.index_matrix = index_matrix
 
     def accept(self, visitor):
         return visitor.visitVarStmt()
 
 
+class Var_block(Stmt):
+    # var_list: é surpreendentemente uma lista de var
+    def __init__(self, var_list):
+        self.var_list = var_list
+
+    def accept(self, visitor):
+        return visitor.visitVarBlockStmt()
+
+
 class Const(Stmt):
     # const_name: nome da variável
-    def __init__(self, name, init_val):
+    def __init__(self, name, init_val, tp, index_array=-1, index_matrix=-1):
         self.name = name
         self.init_val = init_val
+        self.tp = tp
+        self.index_array = index_array
+        self.index_matrix = index_matrix
 
     def accept(self, visitor):
         return visitor.visitConstStmt()
+
+class Const_block(Stmt):
+    # const_name: nome da variável
+    def __init__(self, const_list):
+        self.const_list = const_list
+
+    def accept(self, visitor):
+        return visitor.visitConstBlockStmt()
 
 
 class Struct(Stmt):
