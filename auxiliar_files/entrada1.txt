@@ -1,9 +1,23 @@
 var{
-    int i , j = i+1, k = "";
+    int i , j = i+1, k = 0;
 }
 const{
-    string mensagem = 10;
+    string mensagem = "";
+    int chamander = i;
 }
+struct Pessoa{
+    var{
+        int idades[10][11];
+        string cpf;
+        string nomes[j+1];
+    }
+}
+struct Vicky extends Pessoa{
+    var{
+        int i;
+    }
+}
+
 typedef struct pessoa Person;
 
 procedure start() {

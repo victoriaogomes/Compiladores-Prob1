@@ -19,6 +19,8 @@ class SyntacticAnalyzer:
         self.program = []
         self.stmt_var_block = stmt.Var_block([])
         self.stmt_const_block = stmt.Const_block([])
+        self.st_var = stmt.Var(None, None, None)
+        self.struct = stmt.Struct(None, [])
 
     def add_new_symb_table(self):
         self.scope_index += 1
@@ -413,6 +415,7 @@ class SyntacticAnalyzer:
 
     # Estado que define o tipo de variável que está sendo declarada (struct ou demais tipos)
     def continue_sos(self):
+        self.Line.program_line = self.tokens_list.lookahead().file_line
         if self.tokens_list.lookahead().lexeme == 'struct':
             self.tokens_list.consume_token()
             self.Line.data_type = 'struct'
@@ -673,6 +676,7 @@ class SyntacticAnalyzer:
 
     # Estado que define o tipo de constante que está sendo declarada (struct ou demais tipos)
     def continue_const_sos(self):
+        self.Line.program_line = self.tokens_list.lookahead().file_line
         if self.tokens_list.lookahead().lexeme == 'struct':
             self.tokens_list.consume_token()
             self.Line.data_type = 'struct'
@@ -1033,21 +1037,25 @@ class SyntacticAnalyzer:
 
     # Declaração de um elemento do tipo struct
     def structure_declaration(self):
+        self.struct = stmt.Struct(None, [])
         if self.tokens_list.lookahead().lexeme == 'struct':
+            self.Line.program_line = self.tokens_list.lookahead().file_line
             self.tokens_list.consume_token()
             self.Line.type = 'struct'
             if self.tokens_list.lookahead().lexeme_type == 'IDE':
+                name = self.tokens_list.lookahead()
+                self.struct.name = name
                 self.Line.name = self.tokens_list.lookahead().lexeme
                 self.tokens_list.consume_token()
                 print("VAI PARA STRUCT VARS")
-                return self.struct_vars()
+                self.struct_vars()
             else:
                 print("ERRO NO ESTADO STRUCTURE DECLARATION!!!!!")
                 self.error_treatment('STRUCTUREDECLARATION', 'Identificador')
         else:
             print("ERRO NO ESTADO STRUCTURE DECLARATION!!!!!")
             self.error_treatment('STRUCTUREDECLARATION', 'struct')
-        return None
+        return self.struct
 
     # Declaração do bloco var contido dentro da struct que está sendo definida (blocos const não são permitidos) ou
     # definição da herança de variáveis de uma struct definida anteriormente
@@ -1059,7 +1067,7 @@ class SyntacticAnalyzer:
                 if self.tokens_list.lookahead().lexeme == '{':
                     self.tokens_list.consume_token()
                     print("VAI PARA FIRST STRUCT VAR")
-                    return self.first_struct_var()
+                    self.first_struct_var()
                 else:
                     print("ERRO NO ESTADO STRUCT VAR!!!!!")
                     self.error_treatment('STRUCTVARS', '{')
@@ -1069,6 +1077,7 @@ class SyntacticAnalyzer:
         elif self.tokens_list.lookahead().lexeme == 'extends':
             self.tokens_list.consume_token()
             if self.tokens_list.lookahead().lexeme_type == 'IDE':
+                self.struct.extends = self.tokens_list.lookahead()
                 self.Line.data_type = self.tokens_list.lookahead().lexeme
                 self.tokens_list.consume_token()
                 if self.tokens_list.lookahead().lexeme == '{':
@@ -1078,7 +1087,7 @@ class SyntacticAnalyzer:
                         if self.tokens_list.lookahead().lexeme == '{':
                             self.tokens_list.consume_token()
                             print("VAI PARA FISRT STRUCT VAR")
-                            return self.first_struct_var()
+                            self.first_struct_var()
                         else:
                             print("ERRO NO ESTADO STRUCT VAR!!!!!")
                             self.error_treatment('STRUCTVARS', '{')
@@ -1094,119 +1103,127 @@ class SyntacticAnalyzer:
         else:
             print("ERRO NO ESTADO STRUCT VAR!!!!!")
             self.error_treatment('STRUCTVARS', '{ ou extends')
-        return None
 
     # Declaração da primeira variável da struct, pois é necessária no mínimo uma
     def first_struct_var(self):
         print("VAI PARA DATA TYPE")
         self.Line.params.append(self.tokens_list.lookahead().lexeme)
+        self.st_var.tp = self.tokens_list.lookahead().lexeme
         self.data_type()
         print("VAI PARA STRUCT VAR ID")
-        return self.struct_var_id()
+        self.struct_var_id()
 
     # Declaração do id da variável da struct
     def struct_var_id(self):
         if self.tokens_list.lookahead().lexeme_type == 'IDE':
+            self.st_var.name = self.tokens_list.lookahead()
             self.Line.params[-1] += '.' + self.tokens_list.lookahead().lexeme
             self.tokens_list.consume_token()
             print("VAI PARA STRUCT VAR EXP")
-            return self.struct_var_exp()
+            self.struct_var_exp()
         else:
             print("ERRO NO ESTADO STRUCT VAR ID!!!!!")
             self.error_treatment('STRUCTVARID', 'Identificador')
-        return None
 
     # Estado utilizado para declarar variáveis, a partir da segunda
     def next_struct_var(self):
         if self.tokens_list.lookahead().lexeme == '}':
             self.tokens_list.consume_token()
             if self.tokens_list.lookahead().lexeme == '}':
-                aux = stmt.Struct(self.Line.name, self.Line.params, self.Line.data_type)
                 self.tokens_list.consume_token()
                 self.add_line_on_table(0)
-                return aux
             else:
                 print("ERRO NO ESTADO NEXT STRUCT VAR!!!!!")
                 self.error_treatment('NEXTSTRUCTVAR', '}')
         elif self.tokens_list.lookahead().lexeme_type == 'IDE' or \
                 self.tokens_list.lookahead().lexeme in {'int', 'real', 'string', 'boolean'}:
             self.Line.params.append(self.tokens_list.lookahead().lexeme)
+            self.st_var.tp = self.tokens_list.lookahead().lexeme
             print("VAI PARA DATA TYPE")
             self.data_type()
             print("VAI PARA STRUCT VAR ID")
-            return self.struct_var_id()
+            self.struct_var_id()
         else:
             print("ERRO NO ESTADO NEXT STRUCT VAR!!!!!")
             self.error_treatment('NEXTSTRUCTVAR', '} ou Identificador ou int ou real ou string ou boolean')
-        return None
 
     # Expressões possíveis após uma variável: colocar uma vírgula e enumerar outras variáveis, finalizar a declaração
     # desse tipo de variável ou iniciar a declaração de um vetor
     def struct_var_exp(self):
         if self.tokens_list.lookahead().lexeme == ',':
+            self.struct.variables.append(deepcopy(self.st_var))
+            self.st_var = stmt.Var(None, None, self.st_var.tp)
             self.Line.params.append(self.Line.params[-1].split(sep='.')[0])
             self.tokens_list.consume_token()
             print("VAI PARA STRUCT VAR ID")
-            return self.struct_var_id()
+            self.struct_var_id()
         elif self.tokens_list.lookahead().lexeme == ';':
+            self.struct.variables.append(deepcopy(self.st_var))
+            self.st_var = stmt.Var(None, None, None)
             self.tokens_list.consume_token()
             print("VAI PARA NEXT STRUCT VAR")
-            return self.next_struct_var()
+            self.next_struct_var()
         elif self.tokens_list.lookahead().lexeme == '[':
             self.tokens_list.consume_token()
             self.tokens_list.math_mode_switch()
-            self.vect_mat_index()
+            self.st_var.index_array = self.vect_mat_index()
             self.Line.params[-1] += '.' + self.tokens_list.expression
             self.tokens_list.math_mode_switch()
             if self.tokens_list.lookahead().lexeme == ']':
                 self.tokens_list.consume_token()
                 print("VAI PARA STRUCT MATRIX")
-                return self.struct_matrix()
+                self.struct_matrix()
             else:
                 print("ERRO NO ESTADO STRUCT VAR EXP!!!!!")
                 self.error_treatment('STRUCTVAREXP', '}')
         else:
             print("ERRO NO ESTADO STRUCT VAR EXP!!!!!")
             self.error_treatment('STRUCTVAREXP', ', ou ; ou [')
-        return None
 
     # Estado responsável pela declaração de matriz dentro do bloco var da struct
     def struct_matrix(self):
         if self.tokens_list.lookahead().lexeme == '[':
             self.tokens_list.consume_token()
             self.tokens_list.math_mode_switch()
-            self.vect_mat_index()
+            self.st_var.index_matrix = self.vect_mat_index()
             self.Line.params[-1] = '.' + self.tokens_list.expression
             self.tokens_list.math_mode_switch()
             if self.tokens_list.lookahead().lexeme == ']':
                 self.tokens_list.consume_token()
                 print("VAI PARA CONT STRUCT MATRIX")
-                return self.cont_struct_matrix()
+                self.cont_struct_matrix()
             else:
                 print("ERRO NO ESTADO STRUCT MATRIX!!!!!")
                 self.error_treatment('STRUCTMATRIX', ']')
         elif self.tokens_list.lookahead().lexeme == ',':
+            self.struct.variables.append(deepcopy(self.st_var))
+            self.st_var = stmt.Var(None, None, self.st_var.tp)
             self.tokens_list.consume_token()
             self.Line.params.append(self.Line.params[-1].split(sep='.')[0])
             print("VAI PARA STRUCT VAR ID")
-            return self.struct_var_id()
+            self.struct_var_id()
         elif self.tokens_list.lookahead().lexeme == ';':
+            self.struct.variables.append(deepcopy(self.st_var))
+            self.st_var = stmt.Var(None, None, None)
             self.tokens_list.consume_token()
             print("VAI PARA NEXT STRUCT VAR")
-            return self.next_struct_var()
+            self.next_struct_var()
         else:
             print("ERRO NO ESTADO STRUCT MATRIX!!!!!")
             self.error_treatment('STRUCTMATRIX', '[ ou , ou ;')
-        return None
 
     # Estado para auxiliar a declaração de matriz dentro do bloco var da struct
     def cont_struct_matrix(self):
         if self.tokens_list.lookahead().lexeme == ',':
+            self.struct.variables.append(deepcopy(self.st_var))
+            self.st_var = stmt.Var(None, None, self.st_var.tp)
             self.Line.params.append(self.Line.params[-1].split(sep='.')[0])
             self.tokens_list.consume_token()
             print("VAI PARA VAR ID")
             self.struct_var_id()
         elif self.tokens_list.lookahead().lexeme == ';':
+            self.struct.variables.append(deepcopy(self.st_var))
+            self.st_var = stmt.Var(None, None, None)
             self.tokens_list.consume_token()
             print("VAI PARA NEXT STRUCT VAR")
             self.next_struct_var()

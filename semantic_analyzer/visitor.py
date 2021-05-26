@@ -3,72 +3,62 @@ from semantic_analyzer import statements
 
 
 class Visitor:
-    @staticmethod
-    def visitAssignExpr(expr):
+    def __init__(self, symbol_table):
+        self.symbol_table = symbol_table
+
+    def visitAssignExpr(self, expr):
         pass
 
-    @staticmethod
-    def visitBinaryExpr(expr):
+    def visitBinaryExpr(self, expr):
         pass
 
-    @staticmethod
-    def visitFCallExpr(expr):
+    def visitFCallExpr(self, expr):
         pass
 
-    @staticmethod
-    def visitStructGetExpr(expr):
+    def visitStructGetExpr(self, expr):
         pass
 
-    @staticmethod
-    def visitStructSetExpr(expr):
+    def visitStructSetExpr(self, expr):
         pass
 
-    @staticmethod
-    def visitGroupingExpr(expr):
+    def visitGroupingExpr(self, expr):
         pass
 
-    @staticmethod
-    def visitLitValExpr(expr):
+    def visitLitValExpr(self, expr):
         return expr.value
 
-    @staticmethod
-    def visitLogicalExpr(expr):
+    def visitLogicalExpr(self, expr):
         pass
 
-    @staticmethod
-    def visitUnaryExpr(expr):
+    def visitUnaryExpr(self, expr):
         pass
 
-    @staticmethod
-    def visitConstVarAccessExpr(expr):
+    def visitConstVarAccessExpr(self, expr):
+        var_pos = self.symbol_table.get_line(expr.token_name.lexeme)
+        if not var_pos:
+            print('Erro Semântico: Tentativa de acessar uma variável que não existe!')
+        elif not var_pos[0].value:
+            print('Erro Semântico: Tentativa de acesso a uma variável não inicializada!')
+
+    def visitFunctionStmt(self, stmt):
         pass
 
-    @staticmethod
-    def visitFunctionStmt(stmt):
+    def visitProcedureStmt(self, stmt):
         pass
 
-    @staticmethod
-    def visitProcedureStmt(stmt):
+    def visitExpressionStmt(self, stmt):
         pass
 
-    @staticmethod
-    def visitExpressionStmt(stmt):
+    def visitIfThenElseStmt(self, stmt):
         pass
 
-    @staticmethod
-    def visitIfThenElseStmt(stmt):
+    def visitPrintfStmt(self, stmt):
         pass
 
-    @staticmethod
-    def visitPrintfStmt(stmt):
+    def visitReturnStmt(self, stmt):
         pass
 
-    @staticmethod
-    def visitReturnStmt(stmt):
-        pass
-
-    @staticmethod
-    def visitVarStmt(stmt):
+    def visitVarStmt(self, stmt):
         if stmt.init_val is not None:
             for val in stmt.init_val:
                 if isinstance(val, expressions.LiteralVal):
@@ -80,16 +70,13 @@ class Visitor:
                               str(type(val.value)))
                 else:
                     # Caso o valor inicial seja uma expressão
-                    print('######## Entrou nesse else')
-                    val.accept(Visitor)
+                    val.accept(self)
 
-    @staticmethod
-    def visitVarBlockStmt(stmt):
+    def visitVarBlockStmt(self, stmt):
         for var in stmt.var_list:
-            var.accept(Visitor)
+            var.accept(self)
 
-    @staticmethod
-    def visitConstStmt(stmt):
+    def visitConstStmt(self, stmt):
         for val in stmt.init_val:
             if isinstance(val, expressions.LiteralVal):
                 if not ((type(val.value) is str and stmt.tp == 'string') or
@@ -100,25 +87,25 @@ class Visitor:
                           str(type(val.value)))
             else:
                 # Caso o valor inicial seja uma expressão
-                val.accept(Visitor)
+                val.accept(self)
 
-    @staticmethod
-    def visitConstBlockStmt(stmt):
+    def visitConstBlockStmt(self, stmt):
         for const in stmt.const_list:
-            const.accept(Visitor)
+            const.accept(self)
 
-    @staticmethod
-    def visitStructStmt(stmt):
+    def visitStructStmt(self, stmt):
+        if stmt.extends is not None:
+            extends_pos = self.symbol_table.get_line(stmt.extends.lexeme)
+            if not extends_pos:
+                print('Struct está extendendo uma Struct que não existe!')
+            elif stmt.name.file_line < extends_pos[0].program_line:
+                print('Struct está extendendo uma Struct ainda não definida!')
+
+    def visitWhileStmt(self, stmt):
         pass
 
-    @staticmethod
-    def visitWhileStmt(stmt):
+    def visitTypedefStmt(self, stmt):
         pass
 
-    @staticmethod
-    def visitTypedefStmt(stmt):
-        pass
-
-    @staticmethod
-    def visitReadStmt(stmt):
+    def visitReadStmt(self, stmt):
         pass

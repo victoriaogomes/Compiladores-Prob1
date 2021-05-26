@@ -13,12 +13,15 @@ class SymbolTable:
         self.lines[(str(self.key)+'.'+line.name)] = line
         self.key += 1
 
-    def get_line(self, key):
-        temp = self.lines.get(key)
-        if temp is None:
-            return self.parent.get_line(key)
-        else:
-            return temp
+    def get_line(self, search_key, tp_access=-1):
+        result = [value for key, value in self.lines.items() if key.endswith(search_key)]
+        if tp_access == -1:
+            return result
+        # temp = self.lines.get(key)
+        # if temp is None:
+        #     return self.parent.get_line(key)
+        # else:
+        #     return temp
 
 
 class TableLine:
