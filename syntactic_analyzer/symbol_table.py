@@ -39,18 +39,18 @@ class TableLine:
             self.data_type = ''
             self.params = []
             self.program_line = 0
-            self.value = ''
+            self.value = []
             self.indexes = [-1, -1]
         if type == 1:         # Para Variáveis de mesmo tipo
             self.name = ''
             self.program_line = 0
-            self.value = ''
+            self.value = []
             self.indexes = [-1, -1]
         if type == 2:          # Para variáveis de tipos diferentes na mesma declaração
             self.name = ''
             self.data_type = ''
             self.params = []
             self.program_line = 0
-            self.value = ''
+            self.value = []
             self.indexes = [-1, -1]
 

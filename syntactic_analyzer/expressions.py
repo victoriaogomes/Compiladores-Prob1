@@ -102,9 +102,11 @@ class Unary(Expr):
 
 class ConstVarAccess(Expr):
     # nome, idade
-    def __init__(self, token_name, access_type='local'):
+    def __init__(self, token_name, access_type='local', index_array=-1, index_matrix=-1):
         self.token_name = token_name
-        self.acces_type = access_type
+        self.access_type = access_type
+        self.index_array = index_array
+        self.index_matrix = index_matrix
 
     def accept(self, visitor):
         return visitor.visitConstVarAccessExpr()

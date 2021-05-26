@@ -4,6 +4,7 @@ from copy import deepcopy
 from syntactic_analyzer import symbol_table as s
 from syntactic_analyzer import expressions as expr
 from syntactic_analyzer import statements as stmt
+from lexical_analyzer import tokens as tk
 
 
 class SyntacticAnalyzer:
@@ -12,7 +13,7 @@ class SyntacticAnalyzer:
         self.tokens_list = tokens_list
         self.output_list = deepcopy(tokens_list)
         self.global_table = s.SymbolTable(None)
-        self.Line = s.TableLine('', '', '', [], 0, '')
+        self.Line = s.TableLine('', '', '', [], 0, [])
         self.scope_index = -1
         self.global_scope = True
         self.error = False
@@ -60,7 +61,8 @@ class SyntacticAnalyzer:
             self.header2()
         elif self.tokens_list.lookahead().lexeme in {'function', 'procedure'}:
             print("VAI PARA METHODS")
-            self.program.append(self.methods())
+            self.methods()
+            # self.program.extend(self.methods())
         else:
             print("ERRO NO ESTADO INICIAL!!!!!")
             self.error_treatment('START', 'typedef ou struct ou var ou const ou function ou procedure')
@@ -71,17 +73,17 @@ class SyntacticAnalyzer:
     def header1(self):
         if self.tokens_list.lookahead().lexeme == 'typedef':
             print("VAI PARA TYPEDEF DECLARATION")
-            self.typedef_declaration()
+            self.program.append(self.typedef_declaration())
             print("VAI PARA HEADER 1")
             self.header1()
         elif self.tokens_list.lookahead().lexeme == 'struct':
             print("VAI PARA STRUCT DECLARATION")
-            self.structure_declaration()
+            self.program.append(self.structure_declaration())
             print("VAI PARA HEADER 1")
             self.header1()
         elif self.tokens_list.lookahead().lexeme == 'const':
             print("VAI PARA CONST DECLARATION")
-            self.const_declaration()
+            self.program.append(self.const_declaration())
             print("VAI PARA HEADER 3")
             self.header3()
         elif self.tokens_list.lookahead().lexeme in {'function', 'procedure'}:
@@ -96,17 +98,17 @@ class SyntacticAnalyzer:
     def header2(self):
         if self.tokens_list.lookahead().lexeme == 'typedef':
             print("VAI PARA TYPEDEF DECLARATION")
-            self.typedef_declaration()
+            self.program.append(self.typedef_declaration())
             print("VAI PARA HEADER 2")
             self.header2()
         elif self.tokens_list.lookahead().lexeme == 'struct':
             print("VAI PARA STRUCT DECLARATION")
-            self.structure_declaration()
+            self.program.append(self.structure_declaration())
             print("VAI PARA HEADER 2")
             self.header2()
         elif self.tokens_list.lookahead().lexeme == 'var':
             print("VAI PARA VAR DECLARATION")
-            self.var_declaration()
+            self.program.append(self.var_declaration())
             print("VAI PARA HEADER 3")
             self.header3()
         elif self.tokens_list.lookahead().lexeme in {'function', 'procedure'}:
@@ -121,12 +123,12 @@ class SyntacticAnalyzer:
     def header3(self):
         if self.tokens_list.lookahead().lexeme == 'typedef':
             print("VAI PARA TYPEDEF DECLARATION")
-            self.typedef_declaration()
+            self.program.append(self.typedef_declaration())
             print("VAI PARA HEADER 3")
             self.header3()
         elif self.tokens_list.lookahead().lexeme == 'struct':
             print("VAI PARA STRUCT DECLARATION")
-            self.structure_declaration()
+            self.program.append(self.structure_declaration())
             print("VAI PARA HEADER 3")
             self.header3()
         elif self.tokens_list.lookahead().lexeme in {'function', 'procedure'}:
@@ -181,26 +183,45 @@ class SyntacticAnalyzer:
     # Estado que possui as maneiras possíveis de acessar uma variável (usando os modificadores global e local ou não)
     def variable(self):
         if self.tokens_list.lookahead().lexeme_type == 'IDE':
+            name = self.tokens_list.lookahead()
             self.tokens_list.consume_token()
             print("VAI PRA CONT ELEMENT")
-            self.cont_element()
+            aux = self.cont_element()
+            if aux is expr.ConstVarAccess:
+                aux.token_name = name
+            elif aux is expr.StructGet:
+                aux.struct_name = expr.ConstVarAccess(name)
+            elif aux is None:
+                aux = expr.ConstVarAccess(name)
+            return aux
         elif self.tokens_list.lookahead().lexeme in {'global', 'local'}:
             print("VAI PRA SCOPE VARIABLE")
-            self.scope_variable()
+            return self.scope_variable()
         else:
             print("ERRO NO ESTADO Variable!!!!!")
             self.error_treatment('VARIABLE', 'Identificador ou global ou local')
+        return None
 
     # Estado que possui as maneiras possíveis de acessar uma variável usando os modificadores global e local
     def scope_variable(self):
         if self.tokens_list.lookahead().lexeme in {'global', 'local'}:
+            tp_access = self.tokens_list.lookahead()
             self.tokens_list.consume_token()
             if self.tokens_list.lookahead().lexeme == '.':
                 self.tokens_list.consume_token()
                 if self.tokens_list.lookahead().lexeme_type == 'IDE':
+                    name = self.tokens_list.lookahead()
                     self.tokens_list.consume_token()
                     print("VAI PRA CONT ELEMENT")
-                    self.cont_element()
+                    aux = self.cont_element()
+                    if aux is expr.ConstVarAccess:
+                        aux.token_name = name
+                        aux.access_type = tp_access
+                    elif aux is expr.StructGet:
+                        aux.struct_name = expr.ConstVarAccess(name, tp_access)
+                    elif aux is None:
+                        aux = expr.ConstVarAccess(name, tp_access)
+                    return aux
                 else:
                     print("ERRO NO ESTADO SCOPE Variable!!!!!")
                     self.error_treatment('SCOPEVARIABLE', 'Identificador')
@@ -210,20 +231,22 @@ class SyntacticAnalyzer:
         else:
             print("ERRO NO ESTADO SCOPE Variable!!!!!")
             self.error_treatment('SCOPEVARIABLE', 'global ou local')
+        return None
 
     # Valores que podem ser utilizados para indexar um vetor
     def vect_mat_index(self):
         if self.tokens_list.lookahead().lexeme in {'true', 'false', 'global', 'local', '('}:
             print("VAI PRA ARIT EXP 1")
-            self.arit_exp1()
+            return self.arit_exp1()
         elif self.tokens_list.lookahead().lexeme_type in {'NRO', 'IDE', 'CAD'}:
             print("VAI PRA ARIT EXP 1")
-            self.arit_exp1()
+            return self.arit_exp1()
         else:
             print("ERRO NO ESTADO vect mat index!!!!!")
             self.error_treatment('VECTMATINDEX',
                                  'true ou false ou global ou local ou ( ou Numero ou Identificador ou Cadeida de '
                                  'caracteres')
+        return None
 
     # Tipos de dados que podem ser usados ao declarar uma função, uma variável ou uma constante. Identificador está
     # incluído, pois o typedef pode ter sido usado para definir um novo tipo
@@ -250,17 +273,29 @@ class SyntacticAnalyzer:
         if self.tokens_list.lookahead().lexeme == '[':
             self.tokens_list.consume_token()
             print("VAI PRA VECT MAT INDEX")
-            self.vect_mat_index()
+            a_index = self.vect_mat_index()
             if self.tokens_list.lookahead().lexeme == ']':
                 self.tokens_list.consume_token()
                 print("VAI PRA MATRIX E1")
-                self.matrix_e1()
+                matrix = self.matrix_e1()
+                if matrix is None:
+                    return expr.ConstVarAccess(None, index_array=a_index)
+                elif matrix is expr.StructGet:
+                    if matrix.struct_name is None:
+                        matrix.struct_name = expr.ConstVarAccess(None, index_array=a_index)
+                    else:
+                        matrix.struct_name.index_array = a_index
+                    return matrix
+                elif matrix is expr.ConstVarAccess:
+                    matrix.index_array = a_index
+                    return matrix
             else:
                 print("ERRO EM CONT ELEMENT")
                 self.error_treatment('CONTELEMENT', ']')
         else:
             print("VAI PRA MATRIX E 2")
-            self.matrix_e2()
+            return self.matrix_e2()
+        return None
 
     # Um dos estados usados para tornar possível o acesso a vetor, matriz, struct, matriz dentro de struct, e matriz de
     # struct
@@ -268,15 +303,25 @@ class SyntacticAnalyzer:
         if self.tokens_list.lookahead().lexeme == '.':
             self.tokens_list.consume_token()
             if self.tokens_list.lookahead().lexeme_type == 'IDE':
+                attr_name = self.tokens_list.lookahead()
                 self.tokens_list.consume_token()
                 print("VAI PRA CONT ELEMENT")
-                self.cont_element()
+                aux = self.cont_element()
+                if aux is None:
+                    return expr.StructGet(None, expr.ConstVarAccess(attr_name))
+                elif aux is expr.StructGet:
+                    aux.struct_name = expr.ConstVarAccess(attr_name)
+                    return expr.StructGet(None, aux)
+                elif aux is expr.ConstVarAccess:
+                    aux.token_name = attr_name
+                    return expr.StructGet(None, aux)
             else:
                 print("ERRO NO ESTADO struct e1!!!!!")
                 self.error_treatment('STRUCTE1', 'Identificador')
         else:
             print("ERRO NO ESTADO struct e1!!!!!")
             self.error_treatment('STRUCTE1', '.')
+        return None
 
     # Um dos estados usados para tornar possível o acesso a vetor, matriz, struct, matriz dentro de struct, e matriz de
     # struct
@@ -284,24 +329,31 @@ class SyntacticAnalyzer:
         if self.tokens_list.lookahead().lexeme == '[':
             self.tokens_list.consume_token()
             print("VAI PRA VECT MAT INDEX")
-            self.vect_mat_index()
+            m_index = self.vect_mat_index()
             if self.tokens_list.lookahead().lexeme == ']':
                 self.tokens_list.consume_token()
                 print("VAI PRA MATRIX E2")
-                self.matrix_e2()
+                access = self.matrix_e2()
+                if access is None:
+                    return expr.ConstVarAccess(None, index_matrix=m_index)
+                elif access is expr.StructGet:
+                    access.struct_name = expr.ConstVarAccess(None, index_matrix=m_index)
+                    return access
             else:
                 print("ERRO NO ESTADO matrix e1!!!!!")
                 self.error_treatment('MATRIZE1', ']')
         else:
             print("VAI PRA MATRIX E2")
-            self.matrix_e2()
+            return self.matrix_e2()
+        return None
 
     # Um dos estados usados para tornar possível o acesso a vetor, matriz, struct, matriz dentro de struct, e matriz de
     # struct
     def matrix_e2(self):
         if self.tokens_list.lookahead().lexeme == '.':
             print("VAI PRA STRUCT E1")
-            self.struct_e1()
+            return self.struct_e1()
+        return None
 
 # =====================================================================================================================
 # ================================================ Variable Declaration ===============================================
@@ -396,10 +448,8 @@ class SyntacticAnalyzer:
         elif self.tokens_list.lookahead().lexeme == '=':
             self.tokens_list.consume_token()
             print('VAI PRA EXPRESSION')
-            self.tokens_list.math_mode_switch()
-            self.expression()
-            self.Line.value = self.tokens_list.expression
-            self.tokens_list.math_mode_switch()
+            expr1 = self.expression()
+            self.Line.value.append(expr1)
             print('VAI PRA VERIF VAR')
             self.verif_var()
         elif self.tokens_list.lookahead().lexeme == ';':
@@ -412,10 +462,8 @@ class SyntacticAnalyzer:
         elif self.tokens_list.lookahead().lexeme == '[':
             self.tokens_list.consume_token()
             print('VAI PRA VECT MAT INDEX')
-            self.tokens_list.math_mode_switch()
-            self.vect_mat_index()
-            self.Line.indexes[0] = self.tokens_list.expression
-            self.tokens_list.math_mode_switch()
+            aux = self.vect_mat_index()
+            self.Line.indexes[0] = aux
             if self.tokens_list.lookahead().lexeme == ']':
                 self.tokens_list.consume_token()
                 print('VAI PRA STRUCTURE')
@@ -441,10 +489,7 @@ class SyntacticAnalyzer:
         elif self.tokens_list.lookahead().lexeme == '=':
             self.tokens_list.consume_token()
             print('VAI PRA INIT ARRAY')
-            self.tokens_list.math_mode_switch()
             self.init_array()
-            self.Line.value = self.tokens_list.expression
-            self.tokens_list.math_mode_switch()
         elif self.tokens_list.lookahead().lexeme == ';':
             nvar = stmt.Var(self.Line.name, self.Line.value, self.Line.data_type)
             self.stmt_var_block.var_list.append(nvar)
@@ -454,10 +499,8 @@ class SyntacticAnalyzer:
             self.next_var()
         elif self.tokens_list.lookahead().lexeme == '[':
             self.tokens_list.consume_token()
-            self.tokens_list.math_mode_switch()
-            self.vect_mat_index()
-            self.Line.indexes[1] = self.tokens_list.expression
-            self.tokens_list.math_mode_switch()
+            aux = self.vect_mat_index()
+            self.Line.indexes[1] = aux
             if self.tokens_list.lookahead().lexeme == ']':
                 self.tokens_list.consume_token()
                 print('VAI PRA CONT MATRIX')
@@ -475,10 +518,7 @@ class SyntacticAnalyzer:
         if self.tokens_list.lookahead().lexeme == '=':
             self.tokens_list.consume_token()
             print('VAI PRA INIT MATRIX')
-            self.tokens_list.math_mode_switch()
             self.init_matrix()
-            self.Line.value = self.tokens_list.expression()
-            self.tokens_list.math_mode_switch()
         elif self.tokens_list.lookahead().lexeme == ',':
             nvar = stmt.Var(self.Line.name, self.Line.value, self.Line.data_type, self.Line.indexes[0],
                             self.Line.indexes[1])
@@ -504,8 +544,8 @@ class SyntacticAnalyzer:
         if self.tokens_list.lookahead().lexeme == '[':
             self.tokens_list.consume_token()
             print("VAI PARA EXPRESSION")
-            self.tokens_list.math_mode_switch()
-            self.expression()
+            expr1 = self.expression()
+            self.Line.value.append(expr1)
             print("VAI PARA NEXT ARRAY")
             self.next_array()
         else:
@@ -517,13 +557,12 @@ class SyntacticAnalyzer:
         if self.tokens_list.lookahead().lexeme == ',':
             self.tokens_list.consume_token()
             print("VAI PARA EXPRESSION")
-            self.expression()
+            expr1 = self.expression()
+            self.Line.value.append(expr1)
             print("VAI PARA NEXT ARRAY")
             self.next_array()
         elif self.tokens_list.lookahead().lexeme == ']':
             self.tokens_list.consume_token()
-            self.Line.value = self.tokens_list.expression
-            self.tokens_list.math_mode_switch()
             print("VAI PARA VERIF VAR")
             self.verif_var()
         else:
@@ -534,7 +573,6 @@ class SyntacticAnalyzer:
     def init_matrix(self):
         if self.tokens_list.lookahead().lexeme == '[':
             self.tokens_list.consume_token()
-            self.tokens_list.math_mode_switch()
             print("VAI PARA MATRIZ VALUE")
             self.matrix_value()
         else:
@@ -546,7 +584,8 @@ class SyntacticAnalyzer:
         if self.tokens_list.lookahead().lexeme == '[':
             self.tokens_list.consume_token()
             print("VAI PARA EXPRESSION")
-            self.expression()
+            expr1 = self.expression()
+            self.Line.value.append(expr1)
             print("VAI PARA NEXT MATRIX")
             self.next_matrix()
         else:
@@ -558,7 +597,8 @@ class SyntacticAnalyzer:
         if self.tokens_list.lookahead().lexeme == ',':
             self.tokens_list.consume_token()
             print("VAI PARA EXPRESSION")
-            self.expression()
+            expr1 = self.expression()
+            self.Line.value.append(expr1)
             print("VAI PARA NEXT MATRIX")
             self.next_matrix()
         elif self.tokens_list.lookahead().lexeme == ']':
@@ -577,8 +617,6 @@ class SyntacticAnalyzer:
             self.matrix_value()
         elif self.tokens_list.lookahead().lexeme == ']':
             self.tokens_list.consume_token()
-            self.Line.value = self.tokens_list.expression
-            self.tokens_list.math_mode_switch()
             self.verif_var()
         else:
             print("ERRO NO ESTADO NEXT!!!!!")
@@ -675,19 +713,15 @@ class SyntacticAnalyzer:
         if self.tokens_list.lookahead().lexeme == '=':
             self.tokens_list.consume_token()
             print("VAI PARA EXPRESSION")
-            self.tokens_list.math_mode_switch()
-            self.expression()
-            self.Line.value = self.tokens_list.expression
-            self.tokens_list.math_mode_switch()
+            expr1 = self.expression()
+            self.Line.value.append(expr1)
             print("VAI PARA VERIF CONST")
             self.verif_const()
         elif self.tokens_list.lookahead().lexeme == '[':
             self.tokens_list.consume_token()
             print("VAI PARA VECT MAT INDEX")
-            self.tokens_list.math_mode_switch()
-            self.vect_mat_index()
-            self.Line.indexes[0] = self.tokens_list.expression
-            self.tokens_list.math_mode_switch()
+            aux = self.vect_mat_index()
+            self.Line.indexes[0] = aux
             if self.tokens_list.lookahead().lexeme == ']':
                 self.tokens_list.consume_token()
                 print("VAI PARA CONT STRUCTURE")
@@ -700,17 +734,14 @@ class SyntacticAnalyzer:
     def const_structure(self):
         if self.tokens_list.lookahead().lexeme == '[':
             self.tokens_list.consume_token()
-            self.tokens_list.math_mode_switch()
             print("VAI PARA VECT MAT INDEX")
-            self.vect_mat_index()
-            self.Line.indexes[1] = self.tokens_list.expression
-            self.tokens_list.math_mode_switch()
+            aux = self.vect_mat_index()
+            self.Line.indexes[1] = aux
             if self.tokens_list.lookahead().lexeme == ']':
                 self.tokens_list.consume_token()
                 if self.tokens_list.lookahead().lexeme == '=':
                     self.tokens_list.consume_token()
                     print("VAI PARA INIT CONST MATRIX")
-                    self.tokens_list.math_mode_switch()
                     self.init_const_matrix()
                 else:
                     print("ERRO NO ESTADO CONST STRUCTURE!!!!!")
@@ -722,9 +753,9 @@ class SyntacticAnalyzer:
             self.tokens_list.consume_token()
             if self.tokens_list.lookahead().lexeme == '[':
                 self.tokens_list.consume_token()
-                self.tokens_list.math_mode_switch()
                 print("VAI PARA EXPRESSION")
-                self.expression()
+                expr1 = self.expression()
+                self.Line.value.append(expr1)
                 print("VAI PARA NEXT CONST ARRAY")
                 self.next_const_array()
             else:
@@ -739,13 +770,12 @@ class SyntacticAnalyzer:
         if self.tokens_list.lookahead().lexeme == ',':
             self.tokens_list.consume_token()
             print("VAI PARA EXPRESSION")
-            self.expression()
+            expr1 = self.expression()
+            self.Line.value.append(expr1)
             print("VAI PARA NEXT CONST ARRAY")
             self.next_const_array()
         elif self.tokens_list.lookahead().lexeme == ']':
             self.tokens_list.consume_token()
-            self.Line.value = self.tokens_list.expression
-            self.tokens_list.math_mode_switch()
             print("VAI PARA VERIF CONST")
             self.verif_const()
         else:
@@ -767,7 +797,8 @@ class SyntacticAnalyzer:
         if self.tokens_list.lookahead().lexeme == '[':
             self.tokens_list.consume_token()
             print("VAI PARA EXPRESSION")
-            self.expression()
+            expr1 = self.expression()
+            self.Line.value.append(expr1)
             print("VAI PARA NEXT CONST MATRIX")
             self.next_const_matrix()
         else:
@@ -779,7 +810,8 @@ class SyntacticAnalyzer:
         if self.tokens_list.lookahead().lexeme == ',':
             self.tokens_list.consume_token()
             print("VAI PARA EXPRESSION")
-            self.expression()
+            expr1 = self.expression()
+            self.Line.value.append(expr1)
             print("VAI PARA NEXT CONST MATRIX")
             self.next_const_matrix()
         elif self.tokens_list.lookahead().lexeme == ']':
@@ -798,8 +830,6 @@ class SyntacticAnalyzer:
             self.matrix_const_value()
         elif self.tokens_list.lookahead().lexeme == ']':
             self.tokens_list.consume_token()
-            self.Line.value = self.tokens_list.expression
-            self.tokens_list.math_mode_switch()
             print("VAI PARA VERIF CONST")
             self.verif_const()
         else:
@@ -1192,128 +1222,196 @@ class SyntacticAnalyzer:
     # Estado que inicia a declaração de uma expressão, que poderá ser lógica, relacional ou aritmética
     def expression(self):
         if self.tokens_list.lookahead().lexeme == '!':
+            exc = self.tokens_list.lookahead()
             self.tokens_list.consume_token()
             print("VAI PARA REL EXP")
-            self.rel_exp()
+            expr1 = self.rel_exp()
             print("VAI PARA LOG EXP")
-            self.log_exp()
+            expr2 = self.log_exp()
+            if expr2 is None:
+                return expr.Unary(exc, expr1)
+            else:
+                expr2.left_expr = expr1
+                return expr.Unary(exc, expr2)
         elif self.tokens_list.lookahead().lexeme in {'true', 'false', 'global', 'local', '('}:
             print("VAI PARA REL EXP")
-            self.rel_exp()
+            expr1 = self.rel_exp()
             print("VAI PARA LOG EXP")
-            self.log_exp()
+            expr2 = self.log_exp()
+            if expr2 is None:
+                return expr1
+            else:
+                expr2.left_expr = expr1
+                return expr2
         elif self.tokens_list.lookahead().lexeme_type in {'IDE', 'NRO', 'CAD'}:
             print("VAI PARA REL EXP")
-            self.rel_exp()
+            expr1 = self.rel_exp()
             print("VAI PARA LOG EXP")
-            self.log_exp()
+            expr2 = self.log_exp()
+            if expr2 is None:
+                return expr1
+            else:
+                expr2.left_expr = expr1
+                return expr2
         else:
             print("ERRO NO ESTADO EXPRESSION!!!!!")
             self.error_treatment('EXPRESSION',
                                  '! ou true ou false ou global ou local ou ( ou Numero ou Identificador ou Cadeira de '
                                  'Caracteres')
+        return None
 
     # Estado usado para iniciar a declaração de uma expressão lógica
     def log_exp(self):
         if self.tokens_list.lookahead().lexeme in {'&&', '||'}:
             print("VAI PARA LOGIC SYMBOL")
-            self.logic_symbol()
+            token_op = self.logic_symbol()
             print("VAI PARA REL EXP")
-            self.rel_exp()
+            expr1 = self.rel_exp()
             print("VAI PARA LOG EXP")
-            self.log_exp()
+            expr2 = self.log_exp()
+            if expr2 is None:
+                return expr.Logical(None, token_op, expr1)
+            else:
+                expr2.left_expr = expr1
+                return expr.Logical(None, token_op, expr2)
 
     # Estado que permite o uso dos símbolos lógicos dentro de uma expressão lógica
     def logic_symbol(self):
         if self.tokens_list.lookahead().lexeme in {'&&', '||'}:
+            aux = self.tokens_list.lookahead()
             self.tokens_list.consume_token()
+            return aux
         else:
             print("ERRO NO ESTADO LOGIC SYMBOL!!!!!")
             self.error_treatment('LOGICSYMBOL', '&& ou ||')
+        return None
 
     # Estado usado para iniciar a declaração de uma expressão relacional
     def rel_exp(self):
         print("VAI PARA ARIT EXP 1")
-        self.arit_exp1()
+        expr1 = self.arit_exp1()
         print("VAI PARA REL EXP 2")
-        self.rel_exp2()
+        expr2 = self.rel_exp2()
+        if expr2 is None:
+            return expr1
+        else:
+            expr2.left_expr = expr1
+            return expr2
 
     # Estado usado para auxiliar na declaração de uma expressão relacional
     def rel_exp2(self):
         if self.tokens_list.lookahead().lexeme in {'>', '<', '==', '>=', '<=', '!='}:
             print("VAI PARA REL SYMBOL")
-            self.rel_symbol()
+            token_op = self.rel_symbol()
             print("VAI PARA ARIT EXP 1")
-            self.arit_exp1()
+            expr1 = self.arit_exp1()
             print("VAI PARA REL EXP 2")
-            self.rel_exp2()
+            expr2 = self.rel_exp2()
+            if expr2 is None:
+                return expr.Binary(None, token_op, expr1)
+            else:
+                expr2.left_expr = expr1
+                return expr.Binary(None, token_op, expr2)
+        return None
 
     # Estado que permite o uso dos símbolos relacionais dentro de uma expressão relacional
     def rel_symbol(self):
         if self.tokens_list.lookahead().lexeme in {'>', '<', '==', '>=', '<=', '!='}:
+            aux = self.tokens_list.lookahead()
             self.tokens_list.consume_token()
+            return aux
         else:
             print("ERRO NO ESTADO REL SYMBOL!!!!!")
             self.error_treatment('RELSYMBOL', '> ou < ou == ou >= ou <= ou !=')
+        return None
 
     # Estado usado para iniciar a declaração de uma expressão aritmética
     def arit_exp1(self):
         print("VAI PARA TERM")
-        self.term()
+        expr1 = self.term()
         print("VAI PARA ARIT EXP 2")
-        self.arit_exp2()
+        expr2 = self.arit_exp2()
+        if expr2 is None:
+            return expr1
+        else:
+            expr2.left_expr = expr1
+            return expr2
 
     # Estado usado para auxiliar a declaração de uma expressão aritmética
     def arit_exp2(self):
         if self.tokens_list.lookahead().lexeme in {'+', '-'}:
             print("VAI PARA ARIT SYMB 1")
-            self.arit_symb1()
+            token_op = self.arit_symb1()
             print("VAI PARA TERM")
-            self.term()
+            expr1 = self.term()
             print("VAI PARA ARIT EXP 2")
-            self.arit_exp2()
+            expr2 = self.arit_exp2()
+            if expr2 is None:
+                return expr.Binary(None, token_op, expr1)
+            else:
+                expr2.left_expr = expr1
+                return expr.Binary(None, token_op, expr2)
+        return None
 
     # Estado que permite o uso dos símbolos aritméticos + e - dentro de uma expressão aritmética
     def arit_symb1(self):
         if self.tokens_list.lookahead().lexeme in {'+', '-'}:
+            aux = self.tokens_list.lookahead()
             self.tokens_list.consume_token()
+            return aux
         else:
             print("ERRO NO ESTADO ARIT SYMB 1!!!!!")
             self.error_treatment('ARITSYMB1', '+ ou  -')
+        return None
 
     # Estado que permite adicionar uma "subexpressão" ou um valor na expressão que estamos montando
     def term(self):
         print("VAI PARA OPERATE")
-        self.operate()
+        expr1 = self.operate()
         print("VAI PARA TERM 2")
-        self.term2()
+        expr2 = self.term2()
+        if expr2 is None:
+            return expr1
+        else:
+            expr2.left_expr = expr1
+            return expr2
 
     # Estado para verificar se estamos recebendo uma operação de / ou *, por conta da precedência de operadores
     def term2(self):
         if self.tokens_list.lookahead().lexeme in {'*', '/'}:
             print("VAI PARA ARIT SYMB 2")
-            self.arit_symb2()
+            token_operator = self.arit_symb2()
             print("VAI PARA OPERATE")
-            self.operate()
+            expr1 = self.operate()
             print("VAI PARA TERM 2")
-            self.term2()
+            expr2 = self.term2()
+            if expr2 is None:
+                return expr.Binary(None, token_operator, expr1)
+            else:
+                expr2.left_expr = expr1
+                return expr.Binary(None, token_operator, expr2)
+        return None
 
     # Estado que permite o uso dos símbolos aritméticos * e / dentro de uma expressão aritmética
     def arit_symb2(self):
         if self.tokens_list.lookahead().lexeme in {'*', '/'}:
+            aux = self.tokens_list.lookahead()
             self.tokens_list.consume_token()
+            return aux
         else:
             print("ERRO NO ESTADO ARIT SYMB 2!!!!!")
             self.error_treatment('ARITSYMB2', '* ou /')
+        return None
 
     # Estado para verificar se estamos recebendo uma valor a ser colocado na expressão ou um abre e fecha parênteses
     def operate(self):
         if self.tokens_list.lookahead().lexeme == '(':
             self.tokens_list.consume_token()
             print("VAI PARA EXPRESSION")
-            self.expression()
+            expr1 = self.expression()
             if self.tokens_list.lookahead().lexeme == ')':
                 self.tokens_list.consume_token()
+                return expr.Grouping(expr1)
             else:
                 print("ERRO NO ESTADO OPERATE!!!!!")
                 self.error_treatment('OPERATE', ')')
@@ -1330,29 +1428,42 @@ class SyntacticAnalyzer:
                     aux = expr.LiteralVal(float(self.tokens_list.lookahead().lexeme))
                 else:
                     aux = expr.LiteralVal(int(self.tokens_list.lookahead().lexeme))
+            else:
+                aux = expr.LiteralVal(self.tokens_list.lookahead().lexeme)
             self.tokens_list.consume_token()
             return aux
         elif self.tokens_list.lookahead().lexeme_type == 'IDE':
+            ide = self.tokens_list.lookahead()
             self.tokens_list.consume_token()
             print("VAI PARA CONT OPERATE")
-            self.cont_operate()
+            aux = self.cont_operate()
+            if aux is expr.FunctionCall:
+                aux.func_exp = ide
+            elif aux is None:
+                aux = expr.ConstVarAccess(ide)
+            elif aux is expr.ConstVarAccess:
+                aux.token_name = ide
+            elif aux is expr.StructGet:
+                aux.struct_name = expr.ConstVarAccess(ide)
+            return aux
         elif self.tokens_list.lookahead().lexeme in {'global', 'local'}:
             print("VAI PARA SCOPE VARIABLE")
-            self.scope_variable()
+            return self.scope_variable()
         else:
             print("ERRO NO ESTADO OPERATE!!!!!")
             self.error_treatment('OPERATE',
                                  '( ou true ou false ou glocal ou local ou Identificador ou Numero ou Cadeia de '
                                  'Caracteres')
+        return None
 
     # Estado que permite fazer chamadas de função ou outra variável para ser usada dentro da expressão
     def cont_operate(self):
         if self.tokens_list.lookahead().lexeme == '(':
             print("VAI PARA FUNCTION CALL")
-            self.function_call()
+            return self.function_call()
         else:
             print("VAI PARA CONT ELEMENT")
-            self.cont_element()
+            return self.cont_element()
 
 # =====================================================================================================================
 # ============================================== Typedef declaration ==================================================
@@ -1710,7 +1821,11 @@ class SyntacticAnalyzer:
         if self.tokens_list.lookahead().lexeme == '(':
             self.tokens_list.consume_token()
             print("VAI PARA CONT F CALL")
-            self.cont_f_call()
+            args = self.cont_f_call()
+            if args is tk.Token:
+                return expr.FunctionCall(None, None, args)
+            else:
+                return args
         else:
             print("ERRO NO ESTADO FUNCTION CALL!!!!!")
             self.error_treatment('FUNCTIONCALL', '(')
@@ -1718,9 +1833,11 @@ class SyntacticAnalyzer:
     # Estado para auxiliar a adição de parâmetros para as chamadas de função
     def cont_f_call(self):
         if self.tokens_list.lookahead().lexeme == ')':
+            parent = self.tokens_list.lookahead()
             self.tokens_list.consume_token()
             if self.tokens_list.lookahead().lexeme == ';':
                 self.tokens_list.consume_token()
+                return parent
             else:
                 print("ERRO NO ESTADO F CALL PARAMS!!!!!")
                 self.error_treatment('FCALLPARAMS', ';')
@@ -1728,30 +1845,42 @@ class SyntacticAnalyzer:
             'true', 'false', 'global', 'local', '(', '!'} or self.tokens_list.lookahead().lexeme_type in {
                 'NRO', 'IDE', 'CAD'}:
             print("VAI PARA EXPRESSION")
-            self.expression()
+            arg1 = self.expression()
             print("VAI PARA F CALL PARAMS")
-            self.f_call_params()
+            arg2 = self.f_call_params()
+            if arg2 is tk.Token:
+                return expr.FunctionCall([arg1], None, arg2)
+            elif arg2 is expr.FunctionCall:
+                arg2.arguments.insert(0, arg1)
+                return arg2
         else:
             print("ERRO NO ESTADO CONT F CALL!!!!!")
             self.error_treatment('CONTFCALL',
                                  ') ou true ou false ou global ou local ou ( ou ! ou Numero ou Identificador ou '
                                  'Cadeia de Caracteres')
+        return None
 
     # Loop que permite adicionar mais de um parâmetros para uma chamada de função
     def f_call_params(self):
         if self.tokens_list.lookahead().lexeme == ',':
             self.tokens_list.consume_token()
             print("VAI PARA EXPRESSION")
-            self.expression()
+            arg1 = self.expression()
             print("VAI PARA F CALL PARAMS")
-            self.f_call_params()
+            arg2 = self.f_call_params()
+            if arg2 is tk.Token:
+                if isinstance(arg1, list):
+                    return expr.FunctionCall(arg1, None, arg2)
+                else:
+                    return expr.FunctionCall([arg1], None, arg2)
+            else:
+                if isinstance(arg2, list):
+                    return [arg1].extend(arg2)
+
         elif self.tokens_list.lookahead().lexeme == ')':
+            parent = self.tokens_list.lookahead()
             self.tokens_list.consume_token()
-            # if self.tokens_list.lookahead().lexeme == ';':
-            #     self.tokens_list.consume_token()
-            # else:
-            #     print("ERRO NO ESTADO F CALL PARAMS!!!!!")
-            #     self.error_treatment('FCALLPARAMS', ';')
+            return parent
         else:
             print("ERRO NO ESTADO F CALL PARAMS!!!!!")
             self.error_treatment('FCALLPARAMS', ', ou )')

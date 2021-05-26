@@ -1,3 +1,9 @@
+var{
+    int i , j = i+1, k = 0;
+}
+const{
+    string mensagem = "OI";
+}
 typedef struct pessoa Person;
 
 procedure start() {
