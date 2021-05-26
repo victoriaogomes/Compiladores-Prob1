@@ -18,7 +18,7 @@ class Function(Stmt):
         self.return_tp = return_tp
 
     def accept(self, visitor):
-        return visitor.visitFunctionStmt()
+        return visitor.visitFunctionStmt(self)
 
 
 class Procedure(Stmt):
@@ -31,7 +31,7 @@ class Procedure(Stmt):
         self.body = body
 
     def accept(self, visitor):
-        return visitor.visitProcedureStmt()
+        return visitor.visitProcedureStmt(self)
 
 
 class Expression(Stmt):
@@ -40,7 +40,7 @@ class Expression(Stmt):
         self.expression = expression
 
     def accept(self, visitor):
-        return visitor.visitExpressionStmt()
+        return visitor.visitExpressionStmt(self)
 
 
 class IfThenElse(Stmt):
@@ -51,7 +51,7 @@ class IfThenElse(Stmt):
         self.else_branch = else_branch
 
     def accept(self, visitor):
-        return visitor.visitIfThenElseStmt()
+        return visitor.visitIfThenElseStmt(self)
 
 
 class Printf(Stmt):
@@ -60,7 +60,7 @@ class Printf(Stmt):
         self.expression = expression
 
     def accept(self, visitor):
-        return visitor.visitPrintfStmt()
+        return visitor.visitPrintfStmt(self)
 
 
 class Returnf(Stmt):
@@ -71,7 +71,7 @@ class Returnf(Stmt):
         self.value = value
 
     def accept(self, visitor):
-        return visitor.visitReturnfStmt()
+        return visitor.visitReturnfStmt(self)
 
 
 class Var(Stmt):
@@ -84,7 +84,7 @@ class Var(Stmt):
         self.index_matrix = index_matrix
 
     def accept(self, visitor):
-        return visitor.visitVarStmt()
+        return visitor.visitVarStmt(self)
 
 
 class Var_block(Stmt):
@@ -93,7 +93,7 @@ class Var_block(Stmt):
         self.var_list = var_list
 
     def accept(self, visitor):
-        return visitor.visitVarBlockStmt()
+        return visitor.visitVarBlockStmt(self)
 
 
 class Const(Stmt):
@@ -106,7 +106,7 @@ class Const(Stmt):
         self.index_matrix = index_matrix
 
     def accept(self, visitor):
-        return visitor.visitConstStmt()
+        return visitor.visitConstStmt(self)
 
 class Const_block(Stmt):
     # const_name: nome da variável
@@ -114,7 +114,7 @@ class Const_block(Stmt):
         self.const_list = const_list
 
     def accept(self, visitor):
-        return visitor.visitConstBlockStmt()
+        return visitor.visitConstBlockStmt(self)
 
 
 class Struct(Stmt):
@@ -125,7 +125,7 @@ class Struct(Stmt):
         self.extends = extends
 
     def accept(self, visitor):
-        return visitor.visitStructStmt()
+        return visitor.visitStructStmt(self)
 
 
 class While(Stmt):
@@ -135,7 +135,7 @@ class While(Stmt):
         self.condition = condition
 
     def accept(self, visitor):
-        return visitor.visitWhileStmt()
+        return visitor.visitWhileStmt(self)
 
 
 class Typedef(Stmt):
@@ -145,7 +145,7 @@ class Typedef(Stmt):
         self.tp_name = tp_name
 
     def accept(self, visitor):
-        return visitor.visitTypedefStmt()
+        return visitor.visitTypedefStmt(self)
 
 
 class Read(Stmt):
@@ -154,4 +154,4 @@ class Read(Stmt):
         self.params = params
 
     def accept(self, visitor):
-        return visitor.visitReadStmt()
+        return visitor.visitReadStmt(self)

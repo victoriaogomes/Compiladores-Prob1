@@ -1,8 +1,8 @@
 var{
-    int i , j = i+1, k = 0;
+    int i , j = i+1, k = "";
 }
 const{
-    string mensagem = "OI";
+    string mensagem = 10;
 }
 typedef struct pessoa Person;
 

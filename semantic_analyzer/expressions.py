@@ -14,7 +14,7 @@ class Assign(Expr):
         self.expr = expr
 
     def accept(self, visitor):
-        return visitor.visitAssignExpr()
+        return visitor.visitAssignExpr(self)
 
 
 class Binary(Expr):
@@ -25,7 +25,7 @@ class Binary(Expr):
         self.right_expr = right_expr
 
     def accept(self, visitor):
-        return visitor.visitBinaryExpr()
+        return visitor.visitBinaryExpr(self)
 
 
 class FunctionCall(Expr):
@@ -36,7 +36,7 @@ class FunctionCall(Expr):
         self.token_parenthesis = token_parenthesis
 
     def accept(self, visitor):
-        return visitor.visitFCallExpr()
+        return visitor.visitFCallExpr(self)
 
 
 class StructGet(Expr):
@@ -46,7 +46,7 @@ class StructGet(Expr):
         self.attr_name = attr_name
 
     def accept(self, visitor):
-        return visitor.visitStructGetExpr()
+        return visitor.visitStructGetExpr(self)
 
 
 class StructSet(Expr):
@@ -57,7 +57,7 @@ class StructSet(Expr):
         self.expr_value = expr_value
 
     def accept(self, visitor):
-        return visitor.visitStructSetExpr()
+        return visitor.visitStructSetExpr(self)
 
 
 class Grouping(Expr):
@@ -66,7 +66,7 @@ class Grouping(Expr):
         self.expr = expr
 
     def accept(self, visitor):
-        return visitor.visitGroupingExpr()
+        return visitor.visitGroupingExpr(self)
 
 
 class LiteralVal(Expr):
@@ -75,7 +75,7 @@ class LiteralVal(Expr):
         self.value = value
 
     def accept(self, visitor):
-        return visitor.visitLitValExpr()
+        return visitor.visitLitValExpr(self)
 
 
 class Logical(Expr):
@@ -86,7 +86,7 @@ class Logical(Expr):
         self.right_expr = right_expr
 
     def accept(self, visitor):
-        return visitor.visitLogicalExpr()
+        return visitor.visitLogicalExpr(self)
 
 
 
@@ -97,7 +97,7 @@ class Unary(Expr):
         self.right_expr = right_expr
 
     def accept(self, visitor):
-        return visitor.visitUnaryExpr()
+        return visitor.visitUnaryExpr(self)
 
 
 class ConstVarAccess(Expr):
@@ -109,4 +109,4 @@ class ConstVarAccess(Expr):
         self.index_matrix = index_matrix
 
     def accept(self, visitor):
-        return visitor.visitConstVarAccessExpr()
+        return visitor.visitConstVarAccessExpr(self)

@@ -8,6 +8,7 @@ from lexical_analyzer import caracter_chain
 from lexical_analyzer import identifiers
 from lexical_analyzer import relational_operators
 from lexical_analyzer import token_list as table
+from semantic_analyzer import semantic_analyzer
 
 # Classe principal do projeto, utilizada para verificar a lista de arquivos presente no folder input, abrir cada um
 # deles, remover seus comentários, analisá-los lexicamente, obtendo seus tokens correspondentes e, em seguida, armaze-
@@ -129,8 +130,11 @@ for i in range(len(lista_arquivos)):  # Para cada arquivo presente no folder inp
     ast = analyzer.start()
     filesManager.write_symbol_table(analyzer.output_list.get_tokens(), lista_arquivos[i])
     print('--- Conclusão da análise sintática do arquivo', lista_arquivos[i])
-    print('Foram encontrados erros sintaticos\n') if analyzer.error else print('Não foram encontrados '
-                                                                                             'erros sintaticos\n')
+    print('Foram encontrados erros sintaticos\n') if analyzer.error else \
+        print('Não foram encontrados erros sintaticos\n')
+    semantic = semantic_analyzer.SemanticAnalyzer(analyzer.global_table, ast)
+    semantic.analyze()
+    print('--- Conclusão da análise semântica do arquivo', lista_arquivos[i])
 
 # filesManager.clean_folder('auxiliar_files')  # Limpa o folder com arquivos auxiliares que foram criados para a análise
 lista_arquivos = filesManager.list_files('auxiliar_files')
