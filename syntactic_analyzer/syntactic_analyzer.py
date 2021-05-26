@@ -186,9 +186,9 @@ class SyntacticAnalyzer:
             self.tokens_list.consume_token()
             print("VAI PRA CONT ELEMENT")
             aux = self.cont_element()
-            if aux is expr.ConstVarAccess:
+            if isinstance(aux, expr.ConstVarAccess):
                 aux.token_name = name
-            elif aux is expr.StructGet:
+            elif isinstance(aux, expr.StructGet):
                 aux.struct_name = expr.ConstVarAccess(name)
             elif aux is None:
                 aux = expr.ConstVarAccess(name)
@@ -213,10 +213,10 @@ class SyntacticAnalyzer:
                     self.tokens_list.consume_token()
                     print("VAI PRA CONT ELEMENT")
                     aux = self.cont_element()
-                    if aux is expr.ConstVarAccess:
+                    if isinstance(aux, expr.ConstVarAccess):
                         aux.token_name = name
                         aux.access_type = tp_access
-                    elif aux is expr.StructGet:
+                    elif isinstance(aux, expr.StructGet):
                         aux.struct_name = expr.ConstVarAccess(name, tp_access)
                     elif aux is None:
                         aux = expr.ConstVarAccess(name, tp_access)
@@ -279,13 +279,13 @@ class SyntacticAnalyzer:
                 matrix = self.matrix_e1()
                 if matrix is None:
                     return expr.ConstVarAccess(None, index_array=a_index)
-                elif matrix is expr.StructGet:
+                elif isinstance(matrix, expr.StructGet):
                     if matrix.struct_name is None:
                         matrix.struct_name = expr.ConstVarAccess(None, index_array=a_index)
                     else:
                         matrix.struct_name.index_array = a_index
                     return matrix
-                elif matrix is expr.ConstVarAccess:
+                elif isinstance(matrix, expr.ConstVarAccess):
                     matrix.index_array = a_index
                     return matrix
             else:
@@ -308,10 +308,10 @@ class SyntacticAnalyzer:
                 aux = self.cont_element()
                 if aux is None:
                     return expr.StructGet(None, expr.ConstVarAccess(attr_name))
-                elif aux is expr.StructGet:
+                elif isinstance(aux, expr.StructGet):
                     aux.struct_name = expr.ConstVarAccess(attr_name)
                     return expr.StructGet(None, aux)
-                elif aux is expr.ConstVarAccess:
+                elif isinstance(aux, expr.ConstVarAccess):
                     aux.token_name = attr_name
                     return expr.StructGet(None, aux)
             else:
@@ -335,7 +335,7 @@ class SyntacticAnalyzer:
                 access = self.matrix_e2()
                 if access is None:
                     return expr.ConstVarAccess(None, index_matrix=m_index)
-                elif access is expr.StructGet:
+                elif isinstance(access, expr.StructGet):
                     access.struct_name = expr.ConstVarAccess(None, index_matrix=m_index)
                     return access
             else:
@@ -620,7 +620,6 @@ class SyntacticAnalyzer:
         else:
             print("ERRO NO ESTADO NEXT!!!!!")
             self.error_treatment('NEXT', ', ou ]')
-
 
     # Estado utilizado para verificar se a declaração de variáveis de um mesmo tipo deve ser finalizada ou não
     def verif_var(self):
@@ -1070,7 +1069,7 @@ class SyntacticAnalyzer:
         elif self.tokens_list.lookahead().lexeme == 'extends':
             self.tokens_list.consume_token()
             if self.tokens_list.lookahead().lexeme_type == 'IDE':
-                self.Line.data_type  = self.tokens_list.lookahead().lexeme
+                self.Line.data_type = self.tokens_list.lookahead().lexeme
                 self.tokens_list.consume_token()
                 if self.tokens_list.lookahead().lexeme == '{':
                     self.tokens_list.consume_token()
@@ -1436,13 +1435,13 @@ class SyntacticAnalyzer:
             self.tokens_list.consume_token()
             print("VAI PARA CONT OPERATE")
             aux = self.cont_operate()
-            if aux is expr.FunctionCall:
+            if isinstance(aux, expr.FunctionCall):
                 aux.func_exp = ide
             elif aux is None:
                 aux = expr.ConstVarAccess(ide)
-            elif aux is expr.ConstVarAccess:
+            elif isinstance(aux, expr.ConstVarAccess):
                 aux.token_name = ide
-            elif aux is expr.StructGet:
+            elif isinstance(aux, expr.StructGet):
                 aux.struct_name = expr.ConstVarAccess(ide)
             return aux
         elif self.tokens_list.lookahead().lexeme in {'global', 'local'}:
@@ -1821,7 +1820,7 @@ class SyntacticAnalyzer:
             self.tokens_list.consume_token()
             print("VAI PARA CONT F CALL")
             args = self.cont_f_call()
-            if args is tk.Token:
+            if isinstance(args, tk.Token):
                 return expr.FunctionCall(None, None, args)
             else:
                 return args
@@ -1847,9 +1846,9 @@ class SyntacticAnalyzer:
             arg1 = self.expression()
             print("VAI PARA F CALL PARAMS")
             arg2 = self.f_call_params()
-            if arg2 is tk.Token:
+            if isinstance(arg2, tk.Token):
                 return expr.FunctionCall([arg1], None, arg2)
-            elif arg2 is expr.FunctionCall:
+            elif isinstance(arg2, expr.FunctionCall):
                 arg2.arguments.insert(0, arg1)
                 return arg2
         else:
@@ -1867,7 +1866,7 @@ class SyntacticAnalyzer:
             arg1 = self.expression()
             print("VAI PARA F CALL PARAMS")
             arg2 = self.f_call_params()
-            if arg2 is tk.Token:
+            if isinstance(arg2, tk.Token):
                 if isinstance(arg1, list):
                     return expr.FunctionCall(arg1, None, arg2)
                 else:
@@ -2042,7 +2041,8 @@ class SyntacticAnalyzer:
             self.missing_open_parenthesis(state)
         elif expected_token.find(')') != -1 and state in {'CONDITIONAL', 'STARTPROCEDURE', 'WHILEFUNC'}:
             self.missing_closing_parenthesis(state)
-        elif expected_token.find('then') != -1 and state == 'CONDITIONAL' and self.tokens_list.lookahead().lexeme == '{':
+        elif expected_token.find('then') != -1 and state == 'CONDITIONAL' \
+                and self.tokens_list.lookahead().lexeme == '{':
             self.missing_then()
         else:
             while self.tokens_list.lookahead().lexeme not in state_follows and \
