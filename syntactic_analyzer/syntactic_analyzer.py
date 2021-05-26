@@ -2,8 +2,7 @@ from syntactic_analyzer import firsts_follows as f
 import inspect
 from copy import deepcopy
 from syntactic_analyzer import symbol_table as s
-from syntactic_analyzer import expressions as expr
-from syntactic_analyzer import statements as stmt
+from semantic_analyzer import expressions as expr, statements as stmt
 from lexical_analyzer import tokens as tk
 
 
