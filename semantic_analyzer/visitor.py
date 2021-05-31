@@ -13,7 +13,20 @@ class Visitor:
         pass
 
     def visitFCallExpr(self, expr):
-        pass
+        func_pos = self.symbol_table.get_line(expr.token_name.lexeme, expr.scope)
+        if not func_pos:
+            print(str(expr.token_name.file_line) +
+                  ': Erro Semântico: Tentativa de acessar uma function/procedure que não existe!')
+        elif len(func_pos) > 1:
+            print(str(expr.token_name.file_line) +
+                  ': Erro Semântico: Nome de idenficador indexa dois elementos distintos')
+        elif func_pos[0].tp not in {'function', 'procedure'}:
+            print(str(expr.token_name.file_line) +
+                  ': Erro Semântico: O identificador não corresponde a uma function ou procedure!')
+        elif not expr.token_name.file_line >= func_pos[0].program_line:
+            print(str(expr.token_name.file_line) +
+                  ': Erro Semântico: Tentativa de acesso a uma function/procedure não definido!')
+
 
     def visitStructGetExpr(self, expr):
         pass
@@ -34,11 +47,22 @@ class Visitor:
         pass
 
     def visitConstVarAccessExpr(self, expr):
-        var_pos = self.symbol_table.get_line(expr.token_name.lexeme)
+        var_pos = self.symbol_table.get_line(expr.token_name.lexeme, expr.scope)
         if not var_pos:
-            print('Erro Semântico: Tentativa de acessar uma variável que não existe!')
+            print(str(expr.token_name.file_line) +
+                  ': Erro Semântico: Tentativa de acessar uma variável/constante que não existe!' )
+        elif len(var_pos) > 1:
+            print(str(expr.token_name.file_line) +
+                  ': Erro Semântico: Nome de idenficador indexa duas variáveis distintas')
+        elif var_pos[0].tp not in {'var', 'const'}:
+            print(str(expr.token_name.file_line) +
+                  ': Erro Semântico: O identificador não corresponde a uma variavel ou constante!')
+        elif not expr.token_name.file_line >= var_pos[0].program_line:
+            print(str(expr.token_name.file_line) +
+                  ': Erro Semântico: Tentativa de acesso a uma variavel/constante ainda não declarada!')
         elif not var_pos[0].value:
-            print('Erro Semântico: Tentativa de acesso a uma variável não inicializada!')
+            print(str(expr.token_name.file_line) +
+                  ': Erro Semântico: Tentativa de acesso a uma variável/constante não inicializada!')
 
     def visitFunctionStmt(self, stmt):
         pass
@@ -59,6 +83,11 @@ class Visitor:
         pass
 
     def visitVarStmt(self, stmt):
+        var_pos = self.symbol_table.get_line(stmt.name, stmt.scope)
+        if len(var_pos) > 1:
+            if not var_pos[0].program_line >= stmt.program_line:
+                print(str(stmt.program_line) +
+                      ': Erro semântico: Já existe outro elemento indexado com esse identificador')
         if stmt.init_val is not None:
             for val in stmt.init_val:
                 if isinstance(val, expressions.LiteralVal):
@@ -66,7 +95,7 @@ class Visitor:
                             (type(val.value) is int and stmt.tp == 'int') or
                             (type(val.value) is float and stmt.tp == 'real') or
                             (type(val.value) is bool and stmt.tp == 'boolean')):
-                        print('Erro semântico: Variável do tipo ' + stmt.tp, 'armazenando valor de tipo:',
+                        print(str(stmt.program_line) + ': Erro semântico: Variável do tipo ' + stmt.tp, 'armazenando valor de tipo:',
                               str(type(val.value)))
                 else:
                     # Caso o valor inicial seja uma expressão
@@ -77,13 +106,18 @@ class Visitor:
             var.accept(self)
 
     def visitConstStmt(self, stmt):
+        const_pos = self.symbol_table.get_line(stmt.name, stmt.scope)
+        if len(const_pos) > 1:
+            if not const_pos[0].program_line >= stmt.program_line:
+                print(str(stmt.program_line) +
+                      ': Erro semântico: Já existe outro elemento indexado com esse identificador')
         for val in stmt.init_val:
             if isinstance(val, expressions.LiteralVal):
                 if not ((type(val.value) is str and stmt.tp == 'string') or
                         (type(val.value) is int and stmt.tp == 'int') or
                         (type(val.value) is float and stmt.tp == 'real') or
                         (type(val.value) is bool and stmt.tp == 'boolean')):
-                    print('Erro semântico: Constante do tipo ' + stmt.tp, 'armazenando valor de tipo:',
+                    print(str(stmt.name.file_line) + ': Erro semântico: Constante do tipo ' + stmt.tp, 'armazenando valor de tipo:',
                           str(type(val.value)))
             else:
                 # Caso o valor inicial seja uma expressão
@@ -95,11 +129,11 @@ class Visitor:
 
     def visitStructStmt(self, stmt):
         if stmt.extends is not None:
-            extends_pos = self.symbol_table.get_line(stmt.extends.lexeme)
+            extends_pos = self.symbol_table.get_line(stmt.extends.lexeme, stmt.scope)
             if not extends_pos:
-                print('Struct está extendendo uma Struct que não existe!')
-            elif stmt.name.file_line < extends_pos[0].program_line:
-                print('Struct está extendendo uma Struct ainda não definida!')
+                print(str(stmt.name.file_line) + ': Struct está extendendo uma Struct que não existe!')
+            elif stmt.name.file_line < extends_pos[0].program_line and extends_pos[0].tp == 'struct':
+                print(str(stmt.name.file_line) + ': Struct está extendendo uma Struct ainda não definida!')
 
     def visitWhileStmt(self, stmt):
         pass

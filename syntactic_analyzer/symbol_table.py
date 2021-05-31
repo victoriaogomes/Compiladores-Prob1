@@ -13,22 +13,19 @@ class SymbolTable:
         self.lines[(str(self.key)+'.'+line.name)] = line
         self.key += 1
 
-    def get_line(self, search_key, tp_access=-1):
-        result = [value for key, value in self.lines.items() if key.endswith(search_key)]
+    def get_line(self, search_key, tp_access):
         if tp_access == -1:
-            return result
-        # temp = self.lines.get(key)
-        # if temp is None:
-        #     return self.parent.get_line(key)
-        # else:
-        #     return temp
+            result = [value for key, value in self.lines.items() if key.endswith(search_key)]
+        else:
+            result = [value for key, value in self.children[tp_access].lines.items() if key.endswith(search_key)]
+        return result
 
 
 class TableLine:
 
     def __init__(self, name, tp, data_type, params, program_line, value, index=[-1, -1]):
         self.name = name                                           # Nome do identificador
-        self.type = tp                                             # Tipo define se é variável ou função
+        self.tp = tp                                             # Tipo define se é variável ou função
         self.data_type = data_type                                 # O que a variavel armazena ou o que a função retorna
         self.params = params                                       # Lista de parametros de funções e procedures
         self.program_line = program_line                           # Linha do programa
@@ -38,7 +35,7 @@ class TableLine:
     def reset_for(self, type):
         if type == 0:         # Reset Total
             self.name = ''
-            self.type = ''
+            self.tp = ''
             self.data_type = ''
             self.params = []
             self.program_line = 0
@@ -46,7 +43,6 @@ class TableLine:
             self.indexes = [-1, -1]
         if type == 1:         # Para Variáveis de mesmo tipo
             self.name = ''
-            self.program_line = 0
             self.value = []
             self.indexes = [-1, -1]
         if type == 2:          # Para variáveis de tipos diferentes na mesma declaração

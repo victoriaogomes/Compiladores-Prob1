@@ -17,10 +17,10 @@ class SyntacticAnalyzer:
         self.global_scope = True
         self.error = False
         self.program = []
-        self.stmt_var_block = stmt.Var_block([])
-        self.stmt_const_block = stmt.Const_block([])
-        self.st_var = stmt.Var(None, None, None)
-        self.struct = stmt.Struct(None, [])
+        self.stmt_var_block = stmt.Var_block([], None)
+        self.stmt_const_block = stmt.Const_block([], None)
+        self.st_var = stmt.Var(None, None, None, None, None)
+        self.struct = stmt.Struct(None, [], None)
 
     def add_new_symb_table(self):
         self.scope_index += 1
@@ -191,9 +191,9 @@ class SyntacticAnalyzer:
             if isinstance(aux, expr.ConstVarAccess):
                 aux.token_name = name
             elif isinstance(aux, expr.StructGet):
-                aux.struct_name = expr.ConstVarAccess(name)
+                aux.struct_name = expr.ConstVarAccess(name, self.get_scope())
             elif aux is None:
-                aux = expr.ConstVarAccess(name)
+                aux = expr.ConstVarAccess(name, self.get_scope())
             return aux
         elif self.tokens_list.lookahead().lexeme in {'global', 'local'}:
             print("VAI PRA SCOPE VARIABLE")
@@ -253,13 +253,13 @@ class SyntacticAnalyzer:
     # incluído, pois o typedef pode ter sido usado para definir um novo tipo
     def data_type(self):
         if self.tokens_list.lookahead().lexeme in {'int', 'string', 'real', 'boolean'}:
-            if self.Line.type not in {'function', 'procedure', 'struct'} or \
-                    (self.Line.data_type == '' and self.Line.type == 'function'):
+            if self.Line.tp not in {'function', 'procedure', 'struct'} or \
+                    (self.Line.data_type == '' and self.Line.tp == 'function'):
                 self.Line.data_type = self.tokens_list.lookahead().lexeme
             self.tokens_list.consume_token()
         elif self.tokens_list.lookahead().lexeme_type == 'IDE':
-            if self.Line.type not in {'function', 'procedure', 'struct'} or \
-                    (self.Line.data_type == '' and self.Line.type == 'function'):
+            if self.Line.tp not in {'function', 'procedure', 'struct'} or \
+                    (self.Line.data_type == '' and self.Line.tp == 'function'):
                 if self.Line.data_type != '':
                     self.Line.data_type = self.Line.data_type + '.' + self.tokens_list.lookahead().lexeme
                 else:
@@ -280,10 +280,10 @@ class SyntacticAnalyzer:
                 print("VAI PRA MATRIX E1")
                 matrix = self.matrix_e1()
                 if matrix is None:
-                    return expr.ConstVarAccess(None, index_array=a_index)
+                    return expr.ConstVarAccess(None, self.get_scope(), index_array=a_index)
                 elif isinstance(matrix, expr.StructGet):
                     if matrix.struct_name is None:
-                        matrix.struct_name = expr.ConstVarAccess(None, index_array=a_index)
+                        matrix.struct_name = expr.ConstVarAccess(None, self.get_scope(), index_array=a_index)
                     else:
                         matrix.struct_name.index_array = a_index
                     return matrix
@@ -309,13 +309,13 @@ class SyntacticAnalyzer:
                 print("VAI PRA CONT ELEMENT")
                 aux = self.cont_element()
                 if aux is None:
-                    return expr.StructGet(None, expr.ConstVarAccess(attr_name))
+                    return expr.StructGet(None, expr.ConstVarAccess(attr_name, self.get_scope()), self.get_scope())
                 elif isinstance(aux, expr.StructGet):
-                    aux.struct_name = expr.ConstVarAccess(attr_name)
-                    return expr.StructGet(None, aux)
+                    aux.struct_name = expr.ConstVarAccess(attr_name, self.get_scope())
+                    return expr.StructGet(None, aux, self.get_scope())
                 elif isinstance(aux, expr.ConstVarAccess):
                     aux.token_name = attr_name
-                    return expr.StructGet(None, aux)
+                    return expr.StructGet(None, aux, self.get_scope())
             else:
                 print("ERRO NO ESTADO struct e1!!!!!")
                 self.error_treatment('STRUCTE1', 'Identificador')
@@ -336,9 +336,9 @@ class SyntacticAnalyzer:
                 print("VAI PRA MATRIX E2")
                 access = self.matrix_e2()
                 if access is None:
-                    return expr.ConstVarAccess(None, index_matrix=m_index)
+                    return expr.ConstVarAccess(None, self.get_scope(), index_matrix=m_index)
                 elif isinstance(access, expr.StructGet):
-                    access.struct_name = expr.ConstVarAccess(None, index_matrix=m_index)
+                    access.struct_name = expr.ConstVarAccess(None, self.get_scope(), index_matrix=m_index)
                     return access
             else:
                 print("ERRO NO ESTADO matrix e1!!!!!")
@@ -361,7 +361,7 @@ class SyntacticAnalyzer:
 
     # Estado responsável pela declaração de um bloco var
     def var_declaration(self):
-        self.stmt_var_block = stmt.Var_block([])
+        self.stmt_var_block = stmt.Var_block([], self.get_scope())
         if self.tokens_list.lookahead().lexeme == 'var':
             self.tokens_list.consume_token()
             self.Line.type = 'var'
@@ -441,7 +441,7 @@ class SyntacticAnalyzer:
     # declaração de vetor
     def var_exp(self):
         if self.tokens_list.lookahead().lexeme == ',':
-            nvar = stmt.Var(self.Line.name, self.Line.value, self.Line.data_type)
+            nvar = stmt.Var(self.Line.name, self.Line.value, self.Line.data_type, self.get_scope(), self.Line.program_line)
             self.stmt_var_block.var_list.append(nvar)
             self.add_line_on_table(1)
             self.tokens_list.consume_token()
@@ -455,7 +455,7 @@ class SyntacticAnalyzer:
             print('VAI PRA VERIF VAR')
             self.verif_var()
         elif self.tokens_list.lookahead().lexeme == ';':
-            nvar = stmt.Var(self.Line.name, self.Line.value, self.Line.data_type)
+            nvar = stmt.Var(self.Line.name, self.Line.value, self.Line.data_type, self.get_scope(), self.Line.program_line)
             self.stmt_var_block.var_list.append(nvar)
             self.add_line_on_table(2)
             self.tokens_list.consume_token()
@@ -482,7 +482,7 @@ class SyntacticAnalyzer:
     # declarar uma matriz
     def structure(self):
         if self.tokens_list.lookahead().lexeme == ',':
-            nvar = stmt.Var(self.Line.name, self.Line.value, self.Line.data_type)
+            nvar = stmt.Var(self.Line.name, self.Line.value, self.Line.data_type, self.get_scope(), self.Line.program_line)
             self.stmt_var_block.var_list.append(nvar)
             self.add_line_on_table(1)
             self.tokens_list.consume_token()
@@ -493,7 +493,7 @@ class SyntacticAnalyzer:
             print('VAI PRA INIT ARRAY')
             self.init_array()
         elif self.tokens_list.lookahead().lexeme == ';':
-            nvar = stmt.Var(self.Line.name, self.Line.value, self.Line.data_type)
+            nvar = stmt.Var(self.Line.name, self.Line.value, self.Line.data_type, self.get_scope(), self.Line.program_line)
             self.stmt_var_block.var_list.append(nvar)
             self.tokens_list.consume_token()
             print('VAI PRA NEXT VAR')
@@ -522,7 +522,7 @@ class SyntacticAnalyzer:
             print('VAI PRA INIT MATRIX')
             self.init_matrix()
         elif self.tokens_list.lookahead().lexeme == ',':
-            nvar = stmt.Var(self.Line.name, self.Line.value, self.Line.data_type, self.Line.indexes[0],
+            nvar = stmt.Var(self.Line.name, self.Line.value, self.Line.data_type, self.get_scope(), self.Line.program_line, self.Line.indexes[0],
                             self.Line.indexes[1])
             self.stmt_var_block.var_list.append(nvar)
             self.tokens_list.consume_token()
@@ -530,7 +530,7 @@ class SyntacticAnalyzer:
             self.add_line_on_table(1)
             self.var_id()
         elif self.tokens_list.lookahead().lexeme == ';':
-            nvar = stmt.Var(self.Line.name, self.Line.value, self.Line.data_type, self.Line.indexes[0],
+            nvar = stmt.Var(self.Line.name, self.Line.value, self.Line.data_type, self.get_scope(), self.Line.program_line,self.Line.indexes[0],
                             self.Line.indexes[1])
             self.stmt_var_block.var_list.append(nvar)
             self.add_line_on_table(2)
@@ -627,7 +627,7 @@ class SyntacticAnalyzer:
     # Estado utilizado para verificar se a declaração de variáveis de um mesmo tipo deve ser finalizada ou não
     def verif_var(self):
         if self.tokens_list.lookahead().lexeme == ',':
-            nvar = stmt.Var(self.Line.name, self.Line.value, self.Line.data_type, self.Line.indexes[0],
+            nvar = stmt.Var(self.Line.name, self.Line.value, self.Line.data_type, self.get_scope(), self.Line.program_line, self.Line.indexes[0],
                             self.Line.indexes[1])
             self.stmt_var_block.var_list.append(nvar)
             self.tokens_list.consume_token()
@@ -635,7 +635,7 @@ class SyntacticAnalyzer:
             print("VAI PARA VAR ID")
             self.var_id()
         elif self.tokens_list.lookahead().lexeme == ';':
-            nvar = stmt.Var(self.Line.name, self.Line.value, self.Line.data_type, self.Line.indexes[0],
+            nvar = stmt.Var(self.Line.name, self.Line.value, self.Line.data_type, self.get_scope(), self.Line.program_line, self.Line.indexes[0],
                             self.Line.indexes[1])
             self.stmt_var_block.var_list.append(nvar)
             self.tokens_list.consume_token()
@@ -651,7 +651,7 @@ class SyntacticAnalyzer:
 
     # Estado responsável pela declaração de um bloco const
     def const_declaration(self):
-        self.stmt_const_block = stmt.Const_block([])
+        self.stmt_const_block = stmt.Const_block([], self.get_scope())
         if self.tokens_list.lookahead().lexeme == 'const':
             self.tokens_list.consume_token()
             self.Line.type = 'const'
@@ -841,7 +841,7 @@ class SyntacticAnalyzer:
     # Estado utilizado para verificar se a declaração de constantes de um mesmo tipo deve ser finalizada ou não
     def verif_const(self):
         if self.tokens_list.lookahead().lexeme == ',':
-            nconst = stmt.Const(self.Line.name, self.Line.value, self.Line.data_type,
+            nconst = stmt.Const(self.Line.name, self.Line.value, self.Line.data_type, self.get_scope(), self.Line.program_line,
                                 self.Line.indexes[0], self.Line.indexes[1])
             self.stmt_const_block.const_list.append(nconst)
             self.tokens_list.consume_token()
@@ -849,7 +849,7 @@ class SyntacticAnalyzer:
             print("VAI PARA CONST ID")
             self.const_id()
         elif self.tokens_list.lookahead().lexeme == ';':
-            nconst = stmt.Const(self.Line.name, self.Line.value, self.Line.data_type,
+            nconst = stmt.Const(self.Line.name, self.Line.value, self.Line.data_type, self.get_scope(), self.Line.program_line,
                                 self.Line.indexes[0], self.Line.indexes[1])
             self.stmt_const_block.const_list.append(nconst)
             self.tokens_list.consume_token()
@@ -1037,7 +1037,7 @@ class SyntacticAnalyzer:
 
     # Declaração de um elemento do tipo struct
     def structure_declaration(self):
-        self.struct = stmt.Struct(None, [])
+        self.struct = stmt.Struct(None, [], self.get_scope())
         if self.tokens_list.lookahead().lexeme == 'struct':
             self.Line.program_line = self.tokens_list.lookahead().file_line
             self.tokens_list.consume_token()
@@ -1152,14 +1152,14 @@ class SyntacticAnalyzer:
     def struct_var_exp(self):
         if self.tokens_list.lookahead().lexeme == ',':
             self.struct.variables.append(deepcopy(self.st_var))
-            self.st_var = stmt.Var(None, None, self.st_var.tp)
+            self.st_var = stmt.Var(None, None, self.st_var.tp, self.get_scope(), self.Line.program_line)
             self.Line.params.append(self.Line.params[-1].split(sep='.')[0])
             self.tokens_list.consume_token()
             print("VAI PARA STRUCT VAR ID")
             self.struct_var_id()
         elif self.tokens_list.lookahead().lexeme == ';':
             self.struct.variables.append(deepcopy(self.st_var))
-            self.st_var = stmt.Var(None, None, None)
+            self.st_var = stmt.Var(None, None, None, self.get_scope(), self.Line.program_line)
             self.tokens_list.consume_token()
             print("VAI PARA NEXT STRUCT VAR")
             self.next_struct_var()
@@ -1197,14 +1197,14 @@ class SyntacticAnalyzer:
                 self.error_treatment('STRUCTMATRIX', ']')
         elif self.tokens_list.lookahead().lexeme == ',':
             self.struct.variables.append(deepcopy(self.st_var))
-            self.st_var = stmt.Var(None, None, self.st_var.tp)
+            self.st_var = stmt.Var(None, None, self.st_var.tp, self.get_scope(), self.Line.program_line)
             self.tokens_list.consume_token()
             self.Line.params.append(self.Line.params[-1].split(sep='.')[0])
             print("VAI PARA STRUCT VAR ID")
             self.struct_var_id()
         elif self.tokens_list.lookahead().lexeme == ';':
             self.struct.variables.append(deepcopy(self.st_var))
-            self.st_var = stmt.Var(None, None, None)
+            self.st_var = stmt.Var(None, None, None, self.get_scope(), self.Line.program_line)
             self.tokens_list.consume_token()
             print("VAI PARA NEXT STRUCT VAR")
             self.next_struct_var()
@@ -1216,14 +1216,14 @@ class SyntacticAnalyzer:
     def cont_struct_matrix(self):
         if self.tokens_list.lookahead().lexeme == ',':
             self.struct.variables.append(deepcopy(self.st_var))
-            self.st_var = stmt.Var(None, None, self.st_var.tp)
+            self.st_var = stmt.Var(None, None, self.st_var.tp, self.get_scope(), self.Line.program_line)
             self.Line.params.append(self.Line.params[-1].split(sep='.')[0])
             self.tokens_list.consume_token()
             print("VAI PARA VAR ID")
             self.struct_var_id()
         elif self.tokens_list.lookahead().lexeme == ';':
             self.struct.variables.append(deepcopy(self.st_var))
-            self.st_var = stmt.Var(None, None, None)
+            self.st_var = stmt.Var(None, None, None, self.get_scope(), self.Line.program_line)
             self.tokens_list.consume_token()
             print("VAI PARA NEXT STRUCT VAR")
             self.next_struct_var()
@@ -1244,10 +1244,10 @@ class SyntacticAnalyzer:
             print("VAI PARA LOG EXP")
             expr2 = self.log_exp()
             if expr2 is None:
-                return expr.Unary(exc, expr1)
+                return expr.Unary(exc, expr1, self.get_scope())
             else:
                 expr2.left_expr = expr1
-                return expr.Unary(exc, expr2)
+                return expr.Unary(exc, expr2, self.get_scope())
         elif self.tokens_list.lookahead().lexeme in {'true', 'false', 'global', 'local', '('}:
             print("VAI PARA REL EXP")
             expr1 = self.rel_exp()
@@ -1285,10 +1285,10 @@ class SyntacticAnalyzer:
             print("VAI PARA LOG EXP")
             expr2 = self.log_exp()
             if expr2 is None:
-                return expr.Logical(None, token_op, expr1)
+                return expr.Logical(None, token_op, expr1, self.get_scope())
             else:
                 expr2.left_expr = expr1
-                return expr.Logical(None, token_op, expr2)
+                return expr.Logical(None, token_op, expr2, self.get_scope())
 
     # Estado que permite o uso dos símbolos lógicos dentro de uma expressão lógica
     def logic_symbol(self):
@@ -1323,10 +1323,10 @@ class SyntacticAnalyzer:
             print("VAI PARA REL EXP 2")
             expr2 = self.rel_exp2()
             if expr2 is None:
-                return expr.Binary(None, token_op, expr1)
+                return expr.Binary(None, token_op, expr1, self.get_scope())
             else:
                 expr2.left_expr = expr1
-                return expr.Binary(None, token_op, expr2)
+                return expr.Binary(None, token_op, expr2, self.get_scope())
         return None
 
     # Estado que permite o uso dos símbolos relacionais dentro de uma expressão relacional
@@ -1362,10 +1362,10 @@ class SyntacticAnalyzer:
             print("VAI PARA ARIT EXP 2")
             expr2 = self.arit_exp2()
             if expr2 is None:
-                return expr.Binary(None, token_op, expr1)
+                return expr.Binary(None, token_op, expr1, self.get_scope())
             else:
                 expr2.left_expr = expr1
-                return expr.Binary(None, token_op, expr2)
+                return expr.Binary(None, token_op, expr2, self.get_scope())
         return None
 
     # Estado que permite o uso dos símbolos aritméticos + e - dentro de uma expressão aritmética
@@ -1401,10 +1401,10 @@ class SyntacticAnalyzer:
             print("VAI PARA TERM 2")
             expr2 = self.term2()
             if expr2 is None:
-                return expr.Binary(None, token_operator, expr1)
+                return expr.Binary(None, token_operator, expr1, self.get_scope())
             else:
                 expr2.left_expr = expr1
-                return expr.Binary(None, token_operator, expr2)
+                return expr.Binary(None, token_operator, expr2, self.get_scope())
         return None
 
     # Estado que permite o uso dos símbolos aritméticos * e / dentro de uma expressão aritmética
@@ -1426,25 +1426,25 @@ class SyntacticAnalyzer:
             expr1 = self.expression()
             if self.tokens_list.lookahead().lexeme == ')':
                 self.tokens_list.consume_token()
-                return expr.Grouping(expr1)
+                return expr.Grouping(expr1, self.get_scope())
             else:
                 print("ERRO NO ESTADO OPERATE!!!!!")
                 self.error_treatment('OPERATE', ')')
         elif self.tokens_list.lookahead().lexeme in {'true', 'false'}:
             if self.tokens_list.lookahead().lexeme == 'true':
-                aux = expr.LiteralVal(True)
+                aux = expr.LiteralVal(True, self.get_scope())
             else:
-                aux = expr.LiteralVal(False)
+                aux = expr.LiteralVal(False, self.get_scope())
             self.tokens_list.consume_token()
             return aux
         elif self.tokens_list.lookahead().lexeme_type in {'NRO', 'CAD'}:
             if self.tokens_list.lookahead().lexeme_type == 'NRO':
                 if self.tokens_list.lookahead().lexeme.find('.') != -1:
-                    aux = expr.LiteralVal(float(self.tokens_list.lookahead().lexeme))
+                    aux = expr.LiteralVal(float(self.tokens_list.lookahead().lexeme), self.get_scope())
                 else:
-                    aux = expr.LiteralVal(int(self.tokens_list.lookahead().lexeme))
+                    aux = expr.LiteralVal(int(self.tokens_list.lookahead().lexeme), self.get_scope())
             else:
-                aux = expr.LiteralVal(self.tokens_list.lookahead().lexeme)
+                aux = expr.LiteralVal(self.tokens_list.lookahead().lexeme, self.get_scope())
             self.tokens_list.consume_token()
             return aux
         elif self.tokens_list.lookahead().lexeme_type == 'IDE':
@@ -1455,11 +1455,11 @@ class SyntacticAnalyzer:
             if isinstance(aux, expr.FunctionCall):
                 aux.func_exp = ide
             elif aux is None:
-                aux = expr.ConstVarAccess(ide)
+                aux = expr.ConstVarAccess(ide, self.get_scope())
             elif isinstance(aux, expr.ConstVarAccess):
                 aux.token_name = ide
             elif isinstance(aux, expr.StructGet):
-                aux.struct_name = expr.ConstVarAccess(ide)
+                aux.struct_name = expr.ConstVarAccess(ide, self.get_scope())
             return aux
         elif self.tokens_list.lookahead().lexeme in {'global', 'local'}:
             print("VAI PARA SCOPE VARIABLE")
@@ -1507,7 +1507,7 @@ class SyntacticAnalyzer:
                     self.Line.name = self.tokens_list.lookahead().lexeme
                     self.tokens_list.consume_token()
                     if self.tokens_list.lookahead().lexeme == ';':
-                        aux = stmt.Typedef(self.Line.name, self.Line.data_type)
+                        aux = stmt.Typedef(self.Line.name, self.Line.data_type, self.get_scope())
                         self.add_line_on_table(0)
                         self.tokens_list.consume_token()
                         return aux
@@ -1838,7 +1838,7 @@ class SyntacticAnalyzer:
             print("VAI PARA CONT F CALL")
             args = self.cont_f_call()
             if isinstance(args, tk.Token):
-                return expr.FunctionCall(None, None, args)
+                return expr.FunctionCall(None, None, args, self.get_scope())
             else:
                 return args
         else:
@@ -1864,7 +1864,7 @@ class SyntacticAnalyzer:
             print("VAI PARA F CALL PARAMS")
             arg2 = self.f_call_params()
             if isinstance(arg2, tk.Token):
-                return expr.FunctionCall([arg1], None, arg2)
+                return expr.FunctionCall([arg1], None, arg2, self.get_scope())
             elif isinstance(arg2, expr.FunctionCall):
                 arg2.arguments.insert(0, arg1)
                 return arg2
@@ -1885,9 +1885,9 @@ class SyntacticAnalyzer:
             arg2 = self.f_call_params()
             if isinstance(arg2, tk.Token):
                 if isinstance(arg1, list):
-                    return expr.FunctionCall(arg1, None, arg2)
+                    return expr.FunctionCall(arg1, None, arg2, self.get_scope())
                 else:
-                    return expr.FunctionCall([arg1], None, arg2)
+                    return expr.FunctionCall([arg1], None, arg2, self.get_scope())
             else:
                 if isinstance(arg2, list):
                     return [arg1].extend(arg2)
@@ -2265,3 +2265,9 @@ class SyntacticAnalyzer:
         else:
             print("ERRO NO ESTADO CONDITIONAL!!!!!")
             self.error_treatment('CONDITIONAL', '{')
+
+    def get_scope(self):
+        if self.global_scope:
+            return -1
+        else:
+            return self.scope_index

@@ -3,7 +3,7 @@ var{
 }
 const{
     string mensagem = "";
-    int chamander = i;
+    int chamander = 0, i = 2;
 }
 struct Pessoa{
     var{
