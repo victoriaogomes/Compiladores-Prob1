@@ -11,12 +11,13 @@ class Function(Stmt):
     # function int ano(){}
     # body é uma lista de stmt
     # params é uma lista de tokens
-    def __init__(self, token_name, params, body, return_tp, scope):
+    def __init__(self, token_name, params, body, return_tp, scope, return_expr):
         self.token_name = token_name
         self.params = params
         self.body = body
         self.return_tp = return_tp
         self.scope = scope
+        self.return_expr = return_expr
 
     def accept(self, visitor):
         return visitor.visitFunctionStmt(self)

@@ -21,9 +21,8 @@ class SyntacticAnalyzer:
         self.stmt_const_block = stmt.Const_block([], None)
         self.st_var = stmt.Var(None, None, None, None, None)
         self.struct = stmt.Struct(None, [], None)
-        self.func_stmt = stmt.Function(None, None, None, None, None)
+        self.func_stmt = stmt.Function(None, None, None, None, None, None)
         self.proc_stmt = stmt.Procedure(None, None, None, None)
-        self.is_function = False
 
     def add_new_symb_table(self):
         self.scope_index += 1
@@ -147,20 +146,21 @@ class SyntacticAnalyzer:
     def methods(self):
         if self.tokens_list.lookahead().lexeme == 'function':
             print("VAI PARA FUNCTION")
-            self.function()
+            self.program.append(self.function())
             print("VAI PARA METHODS")
             self.methods()
         elif self.tokens_list.lookahead().lexeme == 'procedure':
             self.tokens_list.consume_token()
             self.Line.type = 'procedure'
             print("VAI PARA PROC CHOICE")
-            self.proc_choice()
+            self.program.append(self.proc_choice())
         else:
             print("ERRO NO ESTADO METHODS!!!!!")
             self.error_treatment('METHODS', 'function ou procedure')
 
     # Estado para escolher entre a declaração de um procedure qualquer ou um procedure start
     def proc_choice(self):
+        self.proc_stmt = stmt.Procedure(self.tokens_list.lookahead(), None, [], None)
         if self.tokens_list.lookahead().lexeme == 'start':
             self.tokens_list.consume_token()
             self.Line.name = 'start'
@@ -180,6 +180,7 @@ class SyntacticAnalyzer:
         else:
             print("ERRO NO ESTADO PROC_CHOICE!!!!!")
             self.error_treatment('PROCCHOICE', 'start ou Identificador')
+        return self.proc_stmt
 
 # =====================================================================================================================
 # ====================================================== Data Types ===================================================
@@ -868,9 +869,8 @@ class SyntacticAnalyzer:
 
     # Estado utilizado para a criação de uma nova função
     def function(self):
-        self.func_stmt = stmt.Function(None, [], [], None, None)
+        self.func_stmt = stmt.Function(None, [], [], None, None, None)
         if self.tokens_list.lookahead().lexeme == 'function':
-            self.is_function = True
             self.tokens_list.consume_token()
             self.Line.type = 'function'
             print("VAI PARA DATA TYPE")
@@ -893,6 +893,7 @@ class SyntacticAnalyzer:
         else:
             print("ERRO NO ESTADO FUNCTION!!!!!")
             self.error_treatment('FUNCTION', 'function')
+        return self.func_stmt
 
     # Estado que permite que, caso o usuário deseje, sejam definidos parâmetros para essa função
     def continue_function(self):
@@ -975,7 +976,6 @@ class SyntacticAnalyzer:
                 if self.tokens_list.lookahead().lexeme == '}':
                     self.tokens_list.consume_token()
                     self.global_scope = True
-                    self.is_function = False
                 else:
                     print("ERRO NO ESTADO BLOCK FUNCTION!!!!!")
                     self.error_treatment('BLOCKFUNCTION', '}')
@@ -991,12 +991,12 @@ class SyntacticAnalyzer:
     def block_function_content(self):
         if self.tokens_list.lookahead().lexeme == 'var':
             print("VAI PARA VAR DECLARATION")
-            self.var_declaration()
+            self.func_stmt.body.append(self.var_declaration())
             print("VAI PARA CONTENT 1")
             self.content1()
         elif self.tokens_list.lookahead().lexeme == 'const':
             print("VAI PARA CONST DECLARATION")
-            self.const_declaration()
+            self.func_stmt.body.append(self.const_declaration())
             print("VAI PARA CONTENT 2")
             self.content2()
         else:
@@ -1006,11 +1006,12 @@ class SyntacticAnalyzer:
     # Código interno de uma função, seguido do retorno obrigatório
     def function_content(self):
         print("VAI PARA CODE")
-        self.code()
+        self.func_stmt.body.append(self.code())
         if self.tokens_list.lookahead().lexeme == 'return':
+            self.func_stmt.return_expr = stmt.Returnf(self.tokens_list.lookahead(), None, self.get_scope())
             self.tokens_list.consume_token()
             print("VAI PARA EXPRESSION")
-            self.expression()
+            self.func_stmt.return_expr.value = self.expression()
         else:
             print("ERRO NO ESTADO FUNCTION CONTENT!!!!!")
             self.error_treatment('FUNCTIONCONTENT', 'return')
@@ -1019,7 +1020,7 @@ class SyntacticAnalyzer:
     def content1(self):
         if self.tokens_list.lookahead().lexeme == 'const':
             print("VAI PARA CONST DECLARATION")
-            self.const_declaration()
+            self.func_stmt.body.append(self.const_declaration())
             print("VAI PARA CONTENT 3")
             self.content3()
         else:
@@ -1030,7 +1031,7 @@ class SyntacticAnalyzer:
     def content2(self):
         if self.tokens_list.lookahead().lexeme == 'var':
             print("VAI PARA VAR DECLARATION")
-            self.var_declaration()
+            self.func_stmt.body.append(self.var_declaration())
             print("VAI PARA CONTENT 3")
             self.content3()
         else:
@@ -1566,6 +1567,7 @@ class SyntacticAnalyzer:
                     self.add_line_on_table(0)
                     self.add_new_symb_table()
                     self.global_scope = False
+                    self.proc_stmt.scope = self.get_scope()
                     self.proc_content()
                 else:
                     print("ERRO NO ESTADO START PROCEDURE!!!!!")
@@ -1607,6 +1609,7 @@ class SyntacticAnalyzer:
     def proc_param(self):
         if self.tokens_list.lookahead().lexeme == ')':
             self.tokens_list.consume_token()
+            self.proc_stmt.params = self.Line.params
         elif self.tokens_list.lookahead().lexeme in {
                 'struct', 'int', 'real', 'string', 'boolean'} or self.tokens_list.lookahead().lexeme_type == 'IDE':
             print("VAI PARA PARAMETERS")
@@ -1620,17 +1623,17 @@ class SyntacticAnalyzer:
     def proc_content(self):
         if self.tokens_list.lookahead().lexeme == 'var':
             print("VAI PARA VAR DECLARATION")
-            self.var_declaration()
+            self.proc_stmt.body.append(self.var_declaration())
             print("VAI PARA PROC CONTENT 2")
             self.proc_content2()
         elif self.tokens_list.lookahead().lexeme == 'const':
             print("VAI PARA CONST DECLARATION")
-            self.const_declaration()
+            self.proc_stmt.body.append(self.const_declaration())
             print("VAI PARA PROC CONTENT")
             self.proc_content3()
         else:
             print("VAI PARA CODE")
-            self.code()
+            self.proc_stmt.body.append(self.code())
             if self.tokens_list.lookahead().lexeme == '}':
                 self.tokens_list.consume_token()
                 self.global_scope = True
@@ -1642,12 +1645,12 @@ class SyntacticAnalyzer:
     def proc_content2(self):
         if self.tokens_list.lookahead().lexeme == 'const':
             print("VAI PARA CONST DECLARATION")
-            self.const_declaration()
+            self.proc_stmt.body.append(self.const_declaration())
             print("VAI PARA PROC CONTENT 4")
             self.proc_content4()
         else:
             print("VAI PARA CODE")
-            self.code()
+            self.proc_stmt.body.append(self.code())
             if self.tokens_list.lookahead().lexeme == '}':
                 self.tokens_list.consume_token()
                 self.global_scope = True
@@ -1659,12 +1662,12 @@ class SyntacticAnalyzer:
     def proc_content3(self):
         if self.tokens_list.lookahead().lexeme == 'var':
             print("VAI PARA VAR DECLARATION")
-            self.var_declaration()
+            self.proc_stmt.body.append(self.var_declaration())
             print("VAI PARA PROC CONTENT")
             self.proc_content4()
         else:
             print("VAI PARA CODE")
-            self.code()
+            self.proc_stmt.body.append(self.code())
             if self.tokens_list.lookahead().lexeme == '}':
                 self.tokens_list.consume_token()
                 self.global_scope = True
@@ -1675,7 +1678,7 @@ class SyntacticAnalyzer:
     # Código interno de um procedure
     def proc_content4(self):
         print("VAI PARA CODE")
-        self.code()
+        self.proc_stmt.body.append(self.code())
         if self.tokens_list.lookahead().lexeme == '}':
             self.tokens_list.consume_token()
             self.global_scope = True
@@ -1689,43 +1692,70 @@ class SyntacticAnalyzer:
             'global', 'local', 'struct', 'typedef', '++', '--', 'print', 'read', 'while',
                 'if'} or self.tokens_list.lookahead().lexeme_type == 'IDE':
             print("VAI PARA COMMAND")
-            self.command()
+            aux = self.command()
             print("VAI PARA CODE")
-            self.code()
+            temp = self.code()
+            if temp is not None:
+                if isinstance(temp, list):
+                    return [aux].extend(temp)
+                else:
+                    return [aux, temp]
+            else:
+                return aux
+        return None
 
     # Tipos de comandos que podem ser utilizados dentro de uma function ou uma procedure
     def command(self):
         if self.tokens_list.lookahead().lexeme == 'print':
             print("VAI PARA PRINT FUNC")
-            self.add_stmt(self.print_func())
+            return self.print_func()
         elif self.tokens_list.lookahead().lexeme_type == 'IDE':
+            aux = self.tokens_list.lookahead()
             self.tokens_list.consume_token()
             print("VAI PARA OTHER COMMANDS")
-            self.other_commands()
+            temp = self.other_commands()
+            if isinstance(temp, expr.FunctionCall):
+                temp.func_exp = aux
+            elif isinstance(temp, expr.Assign):
+                if isinstance(temp.token, expr.ConstVarAccess):
+                    temp.token.token_name = aux
+                elif isinstance(temp.token, expr.StructGet):
+                    temp.token.struct_name = aux
+            return temp
         elif self.tokens_list.lookahead().lexeme in {'global', 'local'}:
             print("VAI PARA SCOPE VARIABLES")
-            self.scope_variable()
+            aux = self.scope_variable()
             print("VAI PARA OTHER COMMANDS")
-            self.other_commands()
+            temp = self.other_commands()
+            if isinstance(temp, expr.FunctionCall):
+                temp.func_exp = aux
+            elif isinstance(temp, expr.Assign):
+                if isinstance(temp.token, expr.ConstVarAccess):
+                    temp.token.token_name = aux
+                elif isinstance(temp.token, expr.StructGet):
+                    temp.token.struct_name = aux
+            return temp
         elif self.tokens_list.lookahead().lexeme == 'read':
             print("VAI PARA READ")
-            self.read()
+            return self.read()
         elif self.tokens_list.lookahead().lexeme == 'while':
             print("VAI PARA WHILE FUNC")
-            self.while_func()
+            return self.while_func()
         elif self.tokens_list.lookahead().lexeme == 'if':
             print("VAI PARA CONDITIONAL")
-            self.conditional()
+            return self.conditional()
         elif self.tokens_list.lookahead().lexeme == 'typedef':
             print("VAI PARA TYPEDEF DECLARATION")
-            self.typedef_declaration()
+            return self.typedef_declaration()
         elif self.tokens_list.lookahead().lexeme == 'struct':
             print("VAI PARA STRUCTURE DECLARATION")
-            self.structure_declaration()
+            return self.structure_declaration()
         elif self.tokens_list.lookahead().lexeme in {'++', '--'}:
+            aux = expr.PrePosIncDec(self.tokens_list.lookahead(), None, self.get_scope())
             self.tokens_list.consume_token()
             print("VAI PARA VARIABLE")
-            self.variable()
+            aux.variable = self.variable()
+            return aux
         else:
             print("ERRO NO ESTADO COMMAND!!!!!")
             self.error_treatment('COMMAND',
@@ -1737,34 +1767,45 @@ class SyntacticAnalyzer:
     def other_commands(self):
         if self.tokens_list.lookahead().lexeme == '(':
             print("VAI PARA FUNCTION CALL")
-            self.function_call()
+            temp = self.function_call()
             if self.tokens_list.lookahead().lexeme == ';':
                 self.tokens_list.consume_token()
+                return temp
             else:
                 self.error_treatment('OTHERCOMMANDS', ';')
         else:
             print("VAI PARA CONT ELEMENT")
-            self.cont_element()
+            temp = self.cont_element()
             print("VAI PARA OTHER COMMANDS 2")
-            self.other_commands2()
+            temp2 = self.other_commands2()
+            if temp is None:
+                return temp2
+            if isinstance(temp2, expr.Assign):
+                temp2.token = temp
+            elif isinstance(temp2, expr.PrePosIncDec):
+                temp2.variable = temp
+            return temp2
 
     # Outros tipos de de comandos que podem ser utilizados dentro de uma function ou uma procedure: pode ser
     # pré/pós incremento (++), pré/pós decremento (--) ou uma atribuição
     def other_commands2(self):
         if self.tokens_list.lookahead().lexeme in {'++', '--'}:
+            temp = expr.PrePosIncDec(self.tokens_list.lookahead(), None, self.get_scope())
             self.tokens_list.consume_token()
             if self.tokens_list.lookahead().lexeme == ';':
                 self.tokens_list.consume_token()
+                return temp
             else:
                 print("ERRO NO ESTADO OTHER COMMANDS2!!!!!")
                 self.error_treatment('OTHERCOMMANDS2', ';')
 
         elif self.tokens_list.lookahead().lexeme == '=':
             print("VAI PARA ASSIGNMENT")
-            self.assignment()
+            return self.assignment()
         else:
             print("ERRO NO ESTADO OTHER COMMANDS2!!!!!")
             self.error_treatment('OTHERCOMMANDS2', '++ ou -- ou =')
+        return None
 
 # =====================================================================================================================
 # ================================================ Print function =====================================================
@@ -1834,10 +1875,11 @@ class SyntacticAnalyzer:
 
     # Estado usado para fazer a atribuição de valores a uma variável
     def assignment(self):
+        assign_expr = expr.Assign(None, None, self.get_scope())
         if self.tokens_list.lookahead().lexeme == '=':
             self.tokens_list.consume_token()
             print("VAI PARA EXPRESSION")
-            self.expression()
+            assign_expr.expr = self.expression()
             if self.tokens_list.lookahead().lexeme == ';':
                 self.tokens_list.consume_token()
             else:
@@ -1846,6 +1888,7 @@ class SyntacticAnalyzer:
         else:
             print("ERRO NO ESTADO ASSIGNMENT!!!!!")
             self.error_treatment('ASSIGNMENT', '=')
+        return assign_expr
 
 # =====================================================================================================================
 # ================================================ Function call ======================================================
@@ -1869,12 +1912,12 @@ class SyntacticAnalyzer:
         if self.tokens_list.lookahead().lexeme == ')':
             parent = self.tokens_list.lookahead()
             self.tokens_list.consume_token()
-            if self.tokens_list.lookahead().lexeme == ';':
-                self.tokens_list.consume_token()
-                return parent
-            else:
-                print("ERRO NO ESTADO F CALL PARAMS!!!!!")
-                self.error_treatment('FCALLPARAMS', ';')
+            # if self.tokens_list.lookahead().lexeme == ';':
+              #   self.tokens_list.consume_token()
+                # return parent
+            # else:
+              #   print("ERRO NO ESTADO F CALL PARAMS!!!!!")
+                # self.error_treatment('FCALLPARAMS', ';')
         elif self.tokens_list.lookahead().lexeme in {
             'true', 'false', 'global', 'local', '(', '!'} or self.tokens_list.lookahead().lexeme_type in {
                 'NRO', 'IDE', 'CAD'}:
@@ -1968,18 +2011,19 @@ class SyntacticAnalyzer:
 # =====================================================================================================================
 # ================================================= While method ======================================================
     def while_func(self):
+        while_stmt = stmt.While(None, None, self.get_scope())
         if self.tokens_list.lookahead().lexeme == 'while':
             self.tokens_list.consume_token()
             if self.tokens_list.lookahead().lexeme == '(':
                 self.tokens_list.consume_token()
                 print("VAI PARA EXPRESSION")
-                self.expression()
+                while_stmt.condition = self.expression()
                 if self.tokens_list.lookahead().lexeme == ')':
                     self.tokens_list.consume_token()
                     if self.tokens_list.lookahead().lexeme == '{':
                         self.tokens_list.consume_token()
                         print("VAI PARA CODE")
-                        self.code()
+                        while_stmt.body = self.code()
                         if self.tokens_list.lookahead().lexeme == '}':
                             self.tokens_list.consume_token()
                         else:
@@ -2001,12 +2045,13 @@ class SyntacticAnalyzer:
 # =====================================================================================================================
 # ================================================ If..then..else =====================================================
     def conditional(self):
+        if_stmt = stmt.IfThenElse(None, None, None, self.get_scope())
         if self.tokens_list.lookahead().lexeme == 'if':
             self.tokens_list.consume_token()
             if self.tokens_list.lookahead().lexeme == '(':
                 self.tokens_list.consume_token()
                 print("VAI PARA EXPRESSION")
-                self.expression()
+                if_stmt.cond_expr = self.expression()
                 if self.tokens_list.lookahead().lexeme == ')':
                     self.tokens_list.consume_token()
                     if self.tokens_list.lookahead().lexeme == 'then':
@@ -2014,11 +2059,13 @@ class SyntacticAnalyzer:
                         if self.tokens_list.lookahead().lexeme == '{':
                             self.tokens_list.consume_token()
                             print("VAI PARA CODE")
-                            self.code()
+                            if_stmt.then_branch = self.code()
                             if self.tokens_list.lookahead().lexeme == '}':
                                 self.tokens_list.consume_token()
                                 print("VAI PARA ELSE PART")
-                                self.else_part()
+                                temp = self.else_part()
+                                if temp is not None:
+                                    if_stmt.else_branch = temp
                             else:
                                 print("ERRO NO ESTADO CONDITIONAL!!!!!")
                                 self.error_treatment('CONDITIONAL', '}')
@@ -2037,6 +2084,7 @@ class SyntacticAnalyzer:
         else:
             print("ERRO NO ESTADO CONDITIONAL!!!!!")
             self.error_treatment('CONDITIONAL', 'if')
+        return if_stmt
 
     def else_part(self):
         if self.tokens_list.lookahead().lexeme == 'else':
@@ -2044,15 +2092,17 @@ class SyntacticAnalyzer:
             if self.tokens_list.lookahead().lexeme == '{':
                 self.tokens_list.consume_token()
                 print("VAI PARA CODE")
-                self.code()
+                temp = self.code()
                 if self.tokens_list.lookahead().lexeme == '}':
                     self.tokens_list.consume_token()
+                    return temp
                 else:
                     print("ERRO NO ESTADO ELSE PART")
                     self.error_treatment('ELSEPART', '}')
             else:
                 print("ERRO NO ESTADO ELSE PART")
                 self.error_treatment('ELSEPART', '{')
+        return None
 
 # =====================================================================================================================
 # =============================================== Erros treatment =====================================================
@@ -2297,9 +2347,3 @@ class SyntacticAnalyzer:
             return -1
         else:
             return self.scope_index
-
-    def add_stmt(self, nstmt):
-        if self.is_function:
-            self.func_stmt.body.append(nstmt)
-        else:
-            self.proc_stmt.body.append(nstmt)

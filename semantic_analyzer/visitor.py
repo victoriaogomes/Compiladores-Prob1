@@ -143,3 +143,6 @@ class Visitor:
 
     def visitReadStmt(self, stmt):
         pass
+
+    def visitPrePosIncDec(self, expr):
+        pass

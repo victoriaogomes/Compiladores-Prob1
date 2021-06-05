@@ -119,3 +119,13 @@ class ConstVarAccess(Expr):
 
     def accept(self, visitor):
         return visitor.visitConstVarAccessExpr(self)
+
+class PrePosIncDec(Expr):
+
+    def __init__(self, token_symbol, variable, scope):
+        self.token_symbol = token_symbol
+        self.variable = variable
+        self.scope = scope
+
+    def accept(self, visitor):
+        return visitor.visitPrePosIncDec(self)
