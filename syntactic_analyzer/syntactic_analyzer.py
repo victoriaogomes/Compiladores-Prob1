@@ -1721,6 +1721,8 @@ class SyntacticAnalyzer:
                     temp.token.token_name = aux
                 elif isinstance(temp.token, expr.StructGet):
                     temp.token.struct_name = aux
+                elif temp.token is None:
+                    temp.token = aux
             return temp
         elif self.tokens_list.lookahead().lexeme in {'global', 'local'}:
             print("VAI PARA SCOPE VARIABLES")
@@ -1914,7 +1916,7 @@ class SyntacticAnalyzer:
             self.tokens_list.consume_token()
             # if self.tokens_list.lookahead().lexeme == ';':
               #   self.tokens_list.consume_token()
-                # return parent
+            return parent
             # else:
               #   print("ERRO NO ESTADO F CALL PARAMS!!!!!")
                 # self.error_treatment('FCALLPARAMS', ';')

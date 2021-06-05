@@ -42,6 +42,9 @@ procedure start() {
             }
         }
     }
+    if(true) then {
+        banana = 12;
+    }
     while(true){
         i++;
     }
