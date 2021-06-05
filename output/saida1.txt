@@ -28,7 +28,7 @@
 6 DEL ,
 6 IDE i
 6 REL =
-6 NRO 2
+6 NRO 0
 6 DEL ;
 7 DEL }
 8 PRE struct

@@ -21,6 +21,9 @@ class SyntacticAnalyzer:
         self.stmt_const_block = stmt.Const_block([], None)
         self.st_var = stmt.Var(None, None, None, None, None)
         self.struct = stmt.Struct(None, [], None)
+        self.func_stmt = stmt.Function(None, None, None, None, None)
+        self.proc_stmt = stmt.Procedure(None, None, None, None)
+        self.is_function = False
 
     def add_new_symb_table(self):
         self.scope_index += 1
@@ -865,12 +868,16 @@ class SyntacticAnalyzer:
 
     # Estado utilizado para a criação de uma nova função
     def function(self):
+        self.func_stmt = stmt.Function(None, [], [], None, None)
         if self.tokens_list.lookahead().lexeme == 'function':
+            self.is_function = True
             self.tokens_list.consume_token()
             self.Line.type = 'function'
             print("VAI PARA DATA TYPE")
+            self.func_stmt.return_tp = self.tokens_list.lookahead()
             self.data_type()
             if self.tokens_list.lookahead().lexeme_type == 'IDE':
+                self.func_stmt.token_name = self.tokens_list.lookahead()
                 self.Line.name = self.tokens_list.lookahead().lexeme
                 self.tokens_list.consume_token()
                 if self.tokens_list.lookahead().lexeme == '(':
@@ -956,9 +963,11 @@ class SyntacticAnalyzer:
     def block_function(self):
         if self.tokens_list.lookahead().lexeme == '{':
             self.tokens_list.consume_token()
+            self.func_stmt.params = self.Line.params
             self.add_line_on_table(0)
             self.add_new_symb_table()
             self.global_scope = False
+            self.func_stmt.scope = self.get_scope()
             print("VAI PARA BLOCK FUNCTION CONTENT")
             self.block_function_content()
             if self.tokens_list.lookahead().lexeme == ';':
@@ -966,6 +975,7 @@ class SyntacticAnalyzer:
                 if self.tokens_list.lookahead().lexeme == '}':
                     self.tokens_list.consume_token()
                     self.global_scope = True
+                    self.is_function = False
                 else:
                     print("ERRO NO ESTADO BLOCK FUNCTION!!!!!")
                     self.error_treatment('BLOCKFUNCTION', '}')
@@ -1687,7 +1697,7 @@ class SyntacticAnalyzer:
     def command(self):
         if self.tokens_list.lookahead().lexeme == 'print':
             print("VAI PARA PRINT FUNC")
-            self.print_func()
+            self.add_stmt(self.print_func())
         elif self.tokens_list.lookahead().lexeme_type == 'IDE':
             self.tokens_list.consume_token()
             print("VAI PARA OTHER COMMANDS")
@@ -1761,34 +1771,42 @@ class SyntacticAnalyzer:
 
     # Estado usado para a chamada do comando print
     def print_func(self):
+        print_stmt = stmt.Printf(None, self.get_scope())
         if self.tokens_list.lookahead().lexeme == 'print':
             self.tokens_list.consume_token()
             if self.tokens_list.lookahead().lexeme == '(':
                 self.tokens_list.consume_token()
                 print("VAI PARA PRINTABLE LIST")
-                self.printable_list()
+                print_stmt.expression = self.printable_list()
             else:
                 print("ERRO NO ESTADO PRINT FUNC!!!!!")
                 self.error_treatment('PRINTFUNC', '(')
         else:
             print("ERRO NO ESTADO PRINT FUNC!!!!!")
             self.error_treatment('PRINTFUNC', 'print')
+        return print_stmt
 
     # Estado usado para montar a lista de parâmetros do comando print
     def printable_list(self):
+        itens = []
         print("VAI PARA PRINTABLE")
-        self.printable()
+        itens.append(self.printable())
         print("VAI PARA NEXT PRINT VALUE")
-        self.next_print_value()
+        temp = self.next_print_value()
+        if temp is not None:
+            itens.extend(temp)
+        return itens
 
     # Estado que define quais elementos podem ser usados como parâmetros do comando print
     def printable(self):
         if self.tokens_list.lookahead().lexeme_type == 'CAD':
+            aux = expr.LiteralVal(self.tokens_list.lookahead().lexeme, self.get_scope())
             self.tokens_list.consume_token()
+            return aux
         elif self.tokens_list.lookahead().lexeme in {
                 'global', 'local'} or self.tokens_list.lookahead().lexeme_type == 'IDE':
             print("VAI PARA VARIABLE")
-            self.variable()
+            return self.variable()
         else:
             print("ERRO NO ESTADO PRINTABLE!!!!!")
             self.error_treatment('PRINTABLE', 'Cadeia de Caracteres ou global ou local ou identificador')
@@ -1798,7 +1816,7 @@ class SyntacticAnalyzer:
         if self.tokens_list.lookahead().lexeme == ',':
             self.tokens_list.consume_token()
             print("VAI PARA PRINTABLE LIST")
-            self.printable_list()
+            return self.printable_list()
         elif self.tokens_list.lookahead().lexeme == ')':
             self.tokens_list.consume_token()
             if self.tokens_list.lookahead().lexeme == ';':
@@ -1809,6 +1827,7 @@ class SyntacticAnalyzer:
         else:
             print("ERRO NO ESTADO NEXT PRINT VALUE!!!!!")
             self.error_treatment('NEXTPRINTVALUE', ', ou )')
+        return None
 
 # =====================================================================================================================
 # ============================================= Variable assignment ===================================================
@@ -1904,30 +1923,36 @@ class SyntacticAnalyzer:
 # ================================================= Read method =======================================================
 
     def read(self):
+        read_stmt = stmt.Read(None, self.get_scope())
         if self.tokens_list.lookahead().lexeme == 'read':
             self.tokens_list.consume_token()
             if self.tokens_list.lookahead().lexeme == '(':
                 self.tokens_list.consume_token()
                 print("VAI PARA READ PARAMS")
-                self.read_params()
+                read_stmt.params = self.read_params()
             else:
                 print("ERRO NO ESTADO READ!!!!!")
                 self.error_treatment('READ', '(')
         else:
             print("ERRO NO ESTADO READ!!!!!")
             self.error_treatment('READ', 'read')
+        return read_stmt
 
     def read_params(self):
+        itens = []
         print("VAI PARA VARIABLE")
-        self.variable()
+        itens.append(self.variable())
         print("VAI PARA READ LOOP")
-        self.read_loop()
+        temp = self.read_loop()
+        if temp is not None:
+            itens.extend(temp)
+        return itens
 
     def read_loop(self):
         if self.tokens_list.lookahead().lexeme == ',':
             self.tokens_list.consume_token()
             print("VAI PARA READ PARAMS")
-            self.read_params()
+            return self.read_params()
         elif self.tokens_list.lookahead().lexeme == ')':
             self.tokens_list.consume_token()
             if self.tokens_list.lookahead().lexeme == ';':
@@ -1938,6 +1963,7 @@ class SyntacticAnalyzer:
         else:
             print("ERRO NO ESTADO READ LOOP!!!!!")
             self.error_treatment('READLOOP', ', ou )')
+        return None
 
 # =====================================================================================================================
 # ================================================= While method ======================================================
@@ -2271,3 +2297,9 @@ class SyntacticAnalyzer:
             return -1
         else:
             return self.scope_index
+
+    def add_stmt(self, nstmt):
+        if self.is_function:
+            self.func_stmt.body.append(nstmt)
+        else:
+            self.proc_stmt.body.append(nstmt)

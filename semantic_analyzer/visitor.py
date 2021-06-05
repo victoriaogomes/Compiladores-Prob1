@@ -117,7 +117,7 @@ class Visitor:
                         (type(val.value) is int and stmt.tp == 'int') or
                         (type(val.value) is float and stmt.tp == 'real') or
                         (type(val.value) is bool and stmt.tp == 'boolean')):
-                    print(str(stmt.name.file_line) + ': Erro semântico: Constante do tipo ' + stmt.tp, 'armazenando valor de tipo:',
+                    print(str(stmt.program_line) + ': Erro semântico: Constante do tipo ' + stmt.tp, 'armazenando valor de tipo:',
                           str(type(val.value)))
             else:
                 # Caso o valor inicial seja uma expressão
