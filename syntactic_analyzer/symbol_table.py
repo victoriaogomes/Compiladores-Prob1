@@ -25,7 +25,7 @@ class TableLine:
 
     def __init__(self, name, tp, data_type, params, program_line, value, index=[-1, -1]):
         self.name = name                                           # Nome do identificador
-        self.tp = tp                                             # Tipo define se é variável ou função
+        self.tp = tp                                               # Tipo define se é variável ou função
         self.data_type = data_type                                 # O que a variavel armazena ou o que a função retorna
         self.params = params                                       # Lista de parametros de funções e procedures
         self.program_line = program_line                           # Linha do programa

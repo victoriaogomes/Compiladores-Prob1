@@ -52,19 +52,6 @@ class StructGet(Expr):
     def accept(self, visitor):
         return visitor.visitStructGetExpr(self)
 
-
-class StructSet(Expr):
-    # Pessoa.nome = Bruno
-    def __init__(self, struct_name, attr_name, expr_value, scope):
-        self.struct_name = struct_name
-        self.attr_name = attr_name
-        self.expr_value = expr_value
-        self.scope = scope
-
-    def accept(self, visitor):
-        return visitor.visitStructSetExpr(self)
-
-
 class Grouping(Expr):
     # (expr)
     def __init__(self, expr, scope):
@@ -110,7 +97,7 @@ class Unary(Expr):
 
 class ConstVarAccess(Expr):
     # nome, idade
-    def __init__(self, token_name, scope, access_type='local', index_array=-1, index_matrix=-1):
+    def __init__(self, token_name, scope, access_type='local', index_array=None, index_matrix=None):
         self.token_name = token_name
         self.access_type = access_type
         self.index_array = index_array

@@ -83,7 +83,7 @@ class Returnf(Stmt):
 
 class Var(Stmt):
     # names: nomes das variáveis
-    def __init__(self, name, init_val, tp, scope, pl, index_array=-1, index_matrix=-1):
+    def __init__(self, name, init_val, tp, scope, pl, index_array=None, index_matrix=None):
         self.name = name
         self.init_val = init_val
         self.tp = tp
@@ -109,7 +109,7 @@ class Var_block(Stmt):
 
 class Const(Stmt):
     # const_name: nome da variável
-    def __init__(self, name, init_val, tp, scope, pl, index_array=-1, index_matrix=-1):
+    def __init__(self, name, init_val, tp, scope, pl, index_array=None, index_matrix=None):
         self.name = name
         self.init_val = init_val
         self.tp = tp

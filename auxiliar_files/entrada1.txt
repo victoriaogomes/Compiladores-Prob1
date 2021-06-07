@@ -1,9 +1,9 @@
 var{
-    int i , j = i+1, k = 0;
+    int i , j = a(), k = 10+(60);
 }
 const{
     string mensagem = "";
-    int chamander = 0, i = 2;
+    int chamander = 0;
 }
 struct Pessoa{
     var{
@@ -24,10 +24,19 @@ function int vontade(){
     var{
         int vontade = 0;
     }
-    vontade++;
+    Pessoa.cpf = "000.105.123-65";
+    if(vontade == 0) then{
+        vontade++;
+    }
+    else{
+        vovo = 1;
+    }
     return vontade;
 }
 procedure start() {
+    var{
+        real vickyChatona;
+    }
     ano(matriz[1][2], vetor[1], tchau);
     if(false) then{
         x = ano() + 1;
@@ -46,8 +55,9 @@ procedure start() {
         banana = 12;
     }
     while(true){
-        i++;
+        print("TIO SAM, Socorro!");
     }
+    read(vetor[1]);
     
 }
 
