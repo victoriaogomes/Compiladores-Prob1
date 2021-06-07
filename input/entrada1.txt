@@ -19,6 +19,7 @@ struct Vicky extends Pessoa{
 }
 
 typedef struct pessoa Person;
+typedef idades matriz;
 
 function int vontade(){
     var{

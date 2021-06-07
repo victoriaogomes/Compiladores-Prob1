@@ -104,6 +104,11 @@ class Visitor:
                     if aux.data_type != 'int':
                         print(str(expr.token_name.file_line) + ': Erro Semântico: Um index de um vetor/matriz deve ser'
                                                                'um valor do tipo inteiro!')
+            elif isinstance(expr.index_array, expressions.StructGet) or isinstance(expr.index_array, expressions.ConstVarAccess):
+                aux = expr.index_array.accept(self)
+                if aux != 'int':
+                    print(str(expr.token_name.file_line) + ': Erro Semântico: Um index de um vetor/matriz deve ser'
+                                                           'um valor do tipo inteiro!')
         elif not var_pos[0].value:
             print(str(expr.token_name.file_line) +
                   ': Erro Semântico: Tentativa de acesso a uma variável/constante não inicializada!')
@@ -190,12 +195,27 @@ class Visitor:
                 print(str(stmt.name.file_line) + ': Erro Semântico: Struct está extendendo uma Struct que não existe!')
             elif stmt.name.file_line < extends_pos[0].program_line and extends_pos[0].tp == 'struct':
                 print(str(stmt.name.file_line) + ': Erro Semântico: Struct está extendendo uma Struct ainda não definida!')
+            elif extends_pos[0].tp == 'typedef':
+                pass
 
     def visitWhileStmt(self, stmt):
         pass
 
     def visitTypedefStmt(self, stmt):
-        pass
+        if stmt.old_tp in {'int', 'string', 'real', 'boolean'}:
+            return stmt.old_tp
+        elif stmt.old_tp.find('.') != -1:
+            aux = stmt.old_tp.split('.')
+            typedef_pos = self.symbol_table.get_line(stmt.old_tp)
+            if not typedef_pos:
+                print(str(stmt.name.file_line) + ': Erro Semântico: Uso do typedef para redefinir tipo inexistente!')
+
+            return aux[1]
+        else:
+            typedef_pos = self.symbol_table.get_line(stmt.old_tp)
+            if not typedef_pos:
+                print(str(stmt.name.file_line) + ': Erro Semântico: Uso do typedef para redefinir tipo inexistente!')
+                
 
     def visitReadStmt(self, stmt):
         pass
