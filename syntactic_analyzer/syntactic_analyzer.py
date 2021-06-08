@@ -1515,10 +1515,11 @@ class SyntacticAnalyzer:
                 self.Line.data_type += '.' + self.tokens_list.lookahead().lexeme
                 self.tokens_list.consume_token()
                 if self.tokens_list.lookahead().lexeme_type == 'IDE':
+                    temp = self.tokens_list.lookahead()
                     self.Line.name = self.tokens_list.lookahead().lexeme
                     self.tokens_list.consume_token()
                     if self.tokens_list.lookahead().lexeme == ';':
-                        aux = stmt.Typedef(self.Line.name, self.Line.data_type, self.get_scope())
+                        aux = stmt.Typedef(temp, self.Line.data_type, self.get_scope())
                         self.add_line_on_table(0)
                         self.tokens_list.consume_token()
                         return aux
@@ -1536,11 +1537,14 @@ class SyntacticAnalyzer:
             print("VAI PARA DATA TYPE")
             self.data_type()
             if self.tokens_list.lookahead().lexeme_type == 'IDE':
+                temp = self.tokens_list.lookahead()
                 self.Line.name = self.tokens_list.lookahead().lexeme
                 self.tokens_list.consume_token()
                 if self.tokens_list.lookahead().lexeme == ';':
+                    aux = stmt.Typedef(temp, self.Line.data_type, self.get_scope())
                     self.add_line_on_table(0)
                     self.tokens_list.consume_token()
+                    return aux
                 else:
                     print("ERRO NO ESTADO CONT TYPEDEF DEC!!!!!")
                     self.error_treatment('CONTTYPEDEFDEC', ';')
@@ -1724,9 +1728,13 @@ class SyntacticAnalyzer:
                 elif isinstance(temp.token, expr.StructGet):
                     temp.token.struct_name = aux
                 elif temp.token is None:
-                    temp.token = aux
+                    temp.token = expr.ConstVarAccess(aux, self.get_scope())
             elif isinstance(temp, expr.PrePosIncDec):
-                temp.variable = aux
+                if temp.variable:
+                    if isinstance(temp.variable, expr.StructGet):
+                        temp.variable.struct_name = aux
+                    elif isinstance(temp.variable, expr.ConstVarAccess):
+                        temp.variable.token_name = aux
             return temp
         elif self.tokens_list.lookahead().lexeme in {'global', 'local'}:
             print("VAI PARA SCOPE VARIABLES")
@@ -1740,6 +1748,8 @@ class SyntacticAnalyzer:
                     temp.token.token_name = aux
                 elif isinstance(temp.token, expr.StructGet):
                     temp.token.struct_name = aux
+                elif temp.token is None:
+                    temp.token = expr.ConstVarAccess(aux, self.get_scope())
             elif isinstance(temp, expr.PrePosIncDec):
                 temp.variable = aux
             return temp
@@ -1763,7 +1773,9 @@ class SyntacticAnalyzer:
             self.tokens_list.consume_token()
             print("VAI PARA VARIABLE")
             aux.variable = self.variable()
-            return aux
+            if self.tokens_list.lookahead().lexeme == ';':
+                self.tokens_list.consume_token()
+                return aux
         else:
             print("ERRO NO ESTADO COMMAND!!!!!")
             self.error_treatment('COMMAND',

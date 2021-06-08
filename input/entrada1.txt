@@ -19,12 +19,18 @@ struct Vicky extends Pessoa{
 }
 
 typedef struct pessoa Person;
+typedef Person Humano;
+typedef Humano Human;
 typedef idades matriz;
+typedef string inteiro;
 
 function int vontade(){
     var{
         int vontade = 0;
+        inteiro idade = 0;
+        struct Pessoa bruno;
     }
+    ++Pessoa.i;
     Pessoa.cpf = "000.105.123-65";
     if(vontade == 0) then{
         vontade++;
@@ -36,8 +42,10 @@ function int vontade(){
 }
 procedure start() {
     var{
-        real vickyChatona;
+        real vickyChatona[10];
     }
+    vickyChatona['oi'] = 1;
+    print(vickyChatona[1]);
     ano(matriz[1][2], vetor[1], tchau);
     if(false) then{
         x = ano() + 1;

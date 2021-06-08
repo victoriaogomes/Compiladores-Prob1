@@ -7,20 +7,23 @@ class Visitor:
         self.symbol_table = symbol_table
 
     def visitAssignExpr(self, expr):
-        var_pos = self.symbol_table.get_line(expr.token.lexeme, expr.scope)
-        if not var_pos:
-            print(str(expr.token.file_line) + ': Erro Semântico: Tentativa de atribuir valor uma variável que '
-                                              'não existe!')
-        elif var_pos[0].tp != 'var':
-            print(str(expr.token.file_line) + ': Erro Semântico: Identificador informado não corresponde a '
-                                              'uma variável, e sim a uma', var_pos[0].tp)
+        if isinstance(expr.token, expressions.StructGet):
+            pass
+        elif isinstance(expr.token, expressions.ConstVarAccess):
+            var_pos = self.symbol_table.get_line(expr.token.token_name.lexeme, expr.scope)
+            if not var_pos:
+                print(str(expr.token.token_name.file_line) + ': Erro Semântico: Tentativa de atribuir valor uma variável que '
+                                                  'não existe!')
+            elif var_pos[0].tp != 'var':
+                print(str(expr.token.token_name.file_line) + ': Erro Semântico: Identificador informado não corresponde a '
+                                                  'uma variável, e sim a uma', var_pos[0].tp)
 
     def visitBinaryExpr(self, expr):
         right_side = ''
         left_side = ''
         inner_error = False
         if isinstance(expr.left_expr, expressions.LiteralVal):
-            left_side = str(type(expr.value))
+            left_side = str(type(expr.left_expr.accept(self)))
         elif isinstance(expr.left_expr, expressions.ConstVarAccess):
             left_side = expr.left_expr.accept(self)
         elif isinstance(expr.left_expr, expressions.FunctionCall):
@@ -92,27 +95,14 @@ class Visitor:
             print(str(expr.token_name.file_line) +
                   ': Erro Semântico: Tentativa de acesso a uma variavel/constante ainda não declarada!')
             return var_pos[0].data_type
-        elif expr.index_array is not None:
-            if isinstance(expr.index_array, expressions.LiteralVal):
-                aux = expr.index_array.accept(self)
-                if not isinstance(aux, int):
-                    print(str(expr.token_name.file_line) + ': Erro Semântico: Um index de um vetor/matriz deve ser'
-                                                           'um valor do tipo inteiro!')
-            elif isinstance(expr.index_array, expressions.FunctionCall):
-                aux = expr.index_array.accept(self)
-                if aux is not None:
-                    if aux.data_type != 'int':
-                        print(str(expr.token_name.file_line) + ': Erro Semântico: Um index de um vetor/matriz deve ser'
-                                                               'um valor do tipo inteiro!')
-            elif isinstance(expr.index_array, expressions.StructGet) or isinstance(expr.index_array, expressions.ConstVarAccess):
-                aux = expr.index_array.accept(self)
-                if aux != 'int':
-                    print(str(expr.token_name.file_line) + ': Erro Semântico: Um index de um vetor/matriz deve ser'
-                                                           'um valor do tipo inteiro!')
         elif not var_pos[0].value:
             print(str(expr.token_name.file_line) +
                   ': Erro Semântico: Tentativa de acesso a uma variável/constante não inicializada!')
             return var_pos[0].data_type
+        if expr.index_array:
+            self.check_index(expr.index_array, expr.token_name.file_line)
+        if expr.index_matrix:
+            self.check_index(expr.index_matrix, expr.token_name.file_line)
         return None
 
     # TODO: VERIFICAR SE JA EXISTE OUTRO PROCEDURE COM O MESMO NOME (OVERLOADING)
@@ -149,18 +139,34 @@ class Visitor:
             if not var_pos[0].program_line >= stmt.program_line:
                 print(str(stmt.program_line) +
                       ': Erro semântico: Já existe outro elemento indexado com esse identificador')
-        if stmt.init_val is not None:
-            for val in stmt.init_val:
-                if isinstance(val, expressions.LiteralVal):
-                    if not ((type(val.value) is str and stmt.tp == 'string') or
-                            (type(val.value) is int and stmt.tp == 'int') or
-                            (type(val.value) is float and stmt.tp == 'real') or
-                            (type(val.value) is bool and stmt.tp == 'boolean')):
-                        print(str(stmt.program_line) + ': Erro semântico: Variável do tipo ' + stmt.tp,
-                              'armazenando valor de tipo:', str(type(val.value)))
-                else:
-                    # Caso o valor inicial seja uma expressão
-                    val.accept(self)
+        # Verifica se o tipo dessa variável realmente existe
+        aux = stmt.tp
+        if stmt.tp not in {'string', 'int', 'real', 'boolean'}:
+            if stmt.tp.find('.') != -1:
+                temp = stmt.tp.split('.')
+                aux = temp[1]
+            else:
+                aux = self.get_old_type(stmt.tp, stmt.scope)
+        if aux:
+            # Verifica se o valor armazenado nessa variável é compatível com seu tipo
+            if stmt.init_val is not None:
+                for val in stmt.init_val:
+                    if isinstance(val, expressions.LiteralVal):
+                        if not ((type(val.value) is str and aux == 'string') or
+                                (type(val.value) is int and aux == 'int') or
+                                (type(val.value) is float and aux == 'real') or
+                                (type(val.value) is bool and aux == 'boolean')):
+                            print(str(stmt.program_line) + ': Erro semântico: Variável do tipo ' + aux,
+                                  'armazenando valor de tipo:', str(type(val.value)))
+                    else:
+                        # Caso o valor inicial seja uma expressão
+                        val.accept(self)
+        else:
+            print(str(stmt.program_line) + ': Erro semântico: Variável de tipo inexistente!')
+        if stmt.index_array is not None:
+            self.check_index(stmt.index_array, stmt.program_line)
+        if stmt.index_matrix is not None:
+            self.check_index(stmt.index_matrix, stmt.program_line)
 
     def visitVarBlockStmt(self, stmt):
         for var in stmt.var_list:
@@ -206,32 +212,91 @@ class Visitor:
             return stmt.old_tp
         elif stmt.old_tp.find('.') != -1:
             aux = stmt.old_tp.split('.')
-            typedef_pos = self.symbol_table.get_line(stmt.old_tp)
+            typedef_pos = self.symbol_table.get_line(aux[1], stmt.scope)
             if not typedef_pos:
-                print(str(stmt.name.file_line) + ': Erro Semântico: Uso do typedef para redefinir tipo inexistente!')
-
-            return aux[1]
+                print(str(stmt.tp_name.file_line) + ': Erro Semântico: Uso do typedef para redefinir tipo inexistente!')
         else:
-            typedef_pos = self.symbol_table.get_line(stmt.old_tp)
-            if not typedef_pos:
-                print(str(stmt.name.file_line) + ': Erro Semântico: Uso do typedef para redefinir tipo inexistente!')
-                
+            if stmt.scope != -1:
+                typedef_pos = self.symbol_table.get_line(stmt.old_tp, stmt.scope)
+                name_pos2 = self.symbol_table.get_line(stmt.old_tp, -1)
+                if not typedef_pos and not name_pos2:
+                        print(str(stmt.tp_name.file_line) + ': Erro Semântico: Uso do typedef para redefinir tipo inexistente!')
+                else:
+                    if typedef_pos and name_pos2:
+                        print(str(stmt.tp_name.file_line) + ': Erro Semântico: Uso do typedef idêntico em mais de um local!')
+            else:
+                typedef_pos = self.symbol_table.get_line(stmt.old_tp, stmt.scope)
+                if not typedef_pos:
+                    print(str(stmt.tp_name.file_line) + ': Erro Semântico: Uso do typedef para redefinir tipo inexistente!')
+
 
     def visitReadStmt(self, stmt):
         pass
 
     def visitPrePosIncDec(self, expr):
-        inc_pos = self.symbol_table.get_line(expr.variable.lexeme, expr.scope)
-        if not inc_pos:
-            print(str(expr.variable.file_line) + ': Erro Semântico: Tentativa de Inc/Dec uma variável que não existe!')
-        elif len(inc_pos) > 1:
-            print(str(expr.variable.file_line) + ': Erro Semântico: Nome de identificador indexando dois '
-                                                'elementos distintos!')
-        elif inc_pos[0].tp != 'var':
-            print(str(expr.variable.file_line) + ': Erro Semântico: Identificador informado não corresponde a uma'
-                                                ' variável, e sim a uma', inc_pos[0].tp)
-        elif inc_pos[0].data_type not in {'int', 'real'}:
-            print(str(expr.variable.file_line) + ': Erro Semântico: Tentativa de Inc/Dec em uma variavel de tipo ',
-                  inc_pos[0].data_type)
-        elif len(inc_pos[0].value) == 0:
-            print(str(expr.variable.file_line) + ': Erro Semântico: Tentativa de Inc/Dec uma variavel não inicializada!')
+        if isinstance(expr.variable, expressions.StructGet):
+            pass
+        elif isinstance(expr.variable, expressions.ConstVarAccess):
+            inc_pos = self.symbol_table.get_line(expr.variable.lexeme, expr.scope)
+            if not inc_pos:
+                print(str(expr.variable.file_line) + ': Erro Semântico: Tentativa de Inc/Dec uma variável que não existe!')
+            elif len(inc_pos) > 1:
+                print(str(expr.variable.file_line) + ': Erro Semântico: Nome de identificador indexando dois '
+                                                    'elementos distintos!')
+            elif inc_pos[0].tp != 'var':
+                print(str(expr.variable.file_line) + ': Erro Semântico: Identificador informado não corresponde a uma'
+                                                    ' variável, e sim a uma', inc_pos[0].tp)
+            elif inc_pos[0].data_type not in {'int', 'real'}:
+                aux = inc_pos[0].data_type
+                if inc_pos[0].data_type not in {'string', 'boolean'}:
+                    aux = self.get_old_type(inc_pos[0].data_type, expr.scope)
+                    if aux and aux in {'int', 'real'}:
+                        return
+                print(str(expr.variable.file_line) + ': Erro Semântico: Tentativa de Inc/Dec em uma variavel de tipo primitivo',
+                      aux)
+            elif len(inc_pos[0].value) == 0:
+                print(str(expr.variable.file_line) + ': Erro Semântico: Tentativa de Inc/Dec uma variavel não inicializada!')
+
+    def get_old_type(self, name, scope):
+        name_pos1 = self.symbol_table.get_line(name, scope)
+        if scope != -1:
+            name_pos2 = self.symbol_table.get_line(name, -1)
+            if name_pos1 and name_pos2:
+                return None
+            elif name_pos1 and len(name_pos1) == 1:
+                return self.check_pos(name_pos1[0], scope)
+            elif name_pos2 and len(name_pos2) == 1:
+                return self.check_pos(name_pos2[0], -1)
+        elif name_pos1 and len(name_pos1) == 1:
+            return self.check_pos(name_pos1[0], scope)
+        return None
+
+    def check_pos(self, name_pos, scope):
+        if name_pos:
+            if name_pos.tp == 'typedef':
+                if name_pos.data_type in {'int', 'string', 'real', 'boolean'}:
+                    return name_pos.data_type
+                elif name_pos.data_type.find('.') != -1:
+                    aux = name_pos.data_type.split('.')
+                    return aux[1]
+                else:
+                    return self.get_old_type(name_pos.data_type, scope)
+        return None # O identificador passado não corresponde a um tipo válido
+
+    # Um método para checar se o index de um vetor ou matriz é um inteiro
+    def check_index(self, index, file_line):
+        if isinstance(index, expressions.LiteralVal):
+            aux = index.accept(self)
+            if isinstance(aux, int):
+                return
+        elif isinstance(index, expressions.FunctionCall):
+            aux = index.accept(self)
+            if aux is not None:
+                if aux.data_type == 'int':
+                    return
+        elif isinstance(index, expressions.StructGet) or isinstance(index, expressions.ConstVarAccess):
+            aux = index.accept(self)
+            if aux == 'int':
+                return
+        print(str(file_line) + ': Erro Semântico: Um index de um vetor/matriz deve ser'
+                               ' um valor do tipo inteiro!')

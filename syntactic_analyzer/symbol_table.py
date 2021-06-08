@@ -23,7 +23,7 @@ class SymbolTable:
 
 class TableLine:
 
-    def __init__(self, name, tp, data_type, params, program_line, value, index=[-1, -1]):
+    def __init__(self, name, tp, data_type, params, program_line, value, index=[None, None]):
         self.name = name                                           # Nome do identificador
         self.tp = tp                                               # Tipo define se é variável ou função
         self.data_type = data_type                                 # O que a variavel armazena ou o que a função retorna
@@ -40,16 +40,16 @@ class TableLine:
             self.params = []
             self.program_line = 0
             self.value = []
-            self.indexes = [-1, -1]
+            self.indexes = [None, None]
         if type == 1:         # Para Variáveis de mesmo tipo
             self.name = ''
             self.value = []
-            self.indexes = [-1, -1]
+            self.indexes = [None, None]
         if type == 2:          # Para variáveis de tipos diferentes na mesma declaração
             self.name = ''
             self.data_type = ''
             self.params = []
             self.program_line = 0
             self.value = []
-            self.indexes = [-1, -1]
+            self.indexes = [None, None]
 
