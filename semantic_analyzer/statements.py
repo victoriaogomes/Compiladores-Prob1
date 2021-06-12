@@ -49,11 +49,12 @@ class Expression(Stmt):
 
 class IfThenElse(Stmt):
     # O then_branch e o else_branch são statements
-    def __init__(self, cond_expr, then_branch, else_branch, scope):
+    def __init__(self, cond_expr, then_branch, else_branch, scope, pl):
         self.cond_expr = cond_expr
         self.then_branch = then_branch
         self.else_branch = else_branch
         self.scope = scope
+        self.program_line = pl
 
     def accept(self, visitor):
         return visitor.visitIfThenElseStmt(self)
@@ -61,9 +62,10 @@ class IfThenElse(Stmt):
 
 class Printf(Stmt):
     # Expression: Lista de expressões a serem impressas
-    def __init__(self, expression, scope):
+    def __init__(self, expression, scope, pl):
         self.expression = expression
         self.scope = scope
+        self.program_line = pl
 
     def accept(self, visitor):
         return visitor.visitPrintfStmt(self)

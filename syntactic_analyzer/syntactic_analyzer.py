@@ -1832,8 +1832,9 @@ class SyntacticAnalyzer:
 
     # Estado usado para a chamada do comando print
     def print_func(self):
-        print_stmt = stmt.Printf(None, self.get_scope())
+        print_stmt = stmt.Printf(None, self.get_scope(), None)
         if self.tokens_list.lookahead().lexeme == 'print':
+            print_stmt.program_line = self.tokens_list.lookahead().file_line
             self.tokens_list.consume_token()
             if self.tokens_list.lookahead().lexeme == '(':
                 self.tokens_list.consume_token()
@@ -1860,17 +1861,7 @@ class SyntacticAnalyzer:
 
     # Estado que define quais elementos podem ser usados como parâmetros do comando print
     def printable(self):
-        if self.tokens_list.lookahead().lexeme_type == 'CAD':
-            aux = expr.LiteralVal(self.tokens_list.lookahead().lexeme, self.get_scope())
-            self.tokens_list.consume_token()
-            return aux
-        elif self.tokens_list.lookahead().lexeme in {
-                'global', 'local'} or self.tokens_list.lookahead().lexeme_type == 'IDE':
-            print("VAI PARA VARIABLE")
-            return self.variable()
-        else:
-            print("ERRO NO ESTADO PRINTABLE!!!!!")
-            self.error_treatment('PRINTABLE', 'Cadeia de Caracteres ou global ou local ou identificador')
+        return self.expression()
 
     # Estado utilizado para permitir que mais de um valor seja passado como parâmetro para o método print
     def next_print_value(self):
@@ -2060,6 +2051,7 @@ class SyntacticAnalyzer:
     def conditional(self):
         if_stmt = stmt.IfThenElse(None, None, None, self.get_scope())
         if self.tokens_list.lookahead().lexeme == 'if':
+            if_stmt.program_line = self.tokens_list.lookahead().file_line
             self.tokens_list.consume_token()
             if self.tokens_list.lookahead().lexeme == '(':
                 self.tokens_list.consume_token()

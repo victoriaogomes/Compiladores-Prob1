@@ -43,9 +43,12 @@ function int vontade(){
 procedure start() {
     var{
         real vickyChatona[10];
+        real bobona = 10000;
     }
-    vickyChatona['oi'] = 1;
-    print(vickyChatona[1]);
+    vickyChatona["oi"] = 1;
+    print(ano(), mes(), dia());
+    print(bobona+bobona,bobona/2.0, 2.0*bobona*bobona);
+    print(idade, vetor[0], matriz[12][43]);
     ano(matriz[1][2], vetor[1], tchau);
     if(false) then{
         x = ano() + 1;

@@ -15,9 +15,9 @@ class SymbolTable:
 
     def get_line(self, search_key, tp_access):
         if tp_access == -1:
-            result = [value for key, value in self.lines.items() if key.endswith(search_key)]
+            result = [value for key, value in self.lines.items() if key.endswith('.' + search_key)]
         else:
-            result = [value for key, value in self.children[tp_access].lines.items() if key.endswith(search_key)]
+            result = [value for key, value in self.children[tp_access].lines.items() if key.endswith('.' + search_key)]
         return result
 
 
