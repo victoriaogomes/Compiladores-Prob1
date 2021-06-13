@@ -2017,8 +2017,9 @@ class SyntacticAnalyzer:
 # =====================================================================================================================
 # ================================================= While method ======================================================
     def while_func(self):
-        while_stmt = stmt.While(None, None, self.get_scope())
+        while_stmt = stmt.While(None, None, self.get_scope(), None)
         if self.tokens_list.lookahead().lexeme == 'while':
+            while_stmt.program_line = self.tokens_list.lookahead().file_line
             self.tokens_list.consume_token()
             if self.tokens_list.lookahead().lexeme == '(':
                 self.tokens_list.consume_token()

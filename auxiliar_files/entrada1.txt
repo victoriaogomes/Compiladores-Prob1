@@ -54,7 +54,7 @@ procedure start() {
         string p, x;
     }
     p = x;
-    vickyChatona["oi"] = 1;
+    vickyChatona[2.0+3.0*6.3] = 1;
     print(ano(), mes(), dia());
     print(bobona+bobona,bobona/2.0, 2.0*bobona*bobona);
     print(idade, vetor[0], matriz[12][43]);
@@ -75,7 +75,7 @@ procedure start() {
     if(true) then {
         banana = 12;
     }
-    while(true){
+    while(false){
         print("TIO SAM, Socorro!");
     }
     read(vetor[1]);

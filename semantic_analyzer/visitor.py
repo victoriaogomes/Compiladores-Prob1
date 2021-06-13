@@ -30,6 +30,10 @@ class Visitor:
                 print(str(expr.token.token_name.file_line) + ': Erro Semântico: Identificador informado não corresponde a '
                                                   'uma variável, e sim a uma', var_pos[0].tp + '!')
                 return None
+            if expr.token.index_array:
+                self.check_index(expr.token.index_array, expr.token.token_name.file_line)
+            if expr.token.index_matrix:
+                self.check_index(expr.token.index_matrix, expr.token.token_name.file_line)
             if var_pos[0].data_type not in {'int', 'string', 'real', 'boolean'}:
                 temp = self.get_old_type(var_pos[0].data_type, expr.scope)
             else:
@@ -349,6 +353,17 @@ class Visitor:
 
     def visitWhileStmt(self, stmt):
         aux = stmt.condition.accept(self)
+        if isinstance(stmt.condition, expressions.FunctionCall):
+            if aux is not None:
+                if aux.tp == 'procedure':
+                    print(str(stmt.program_line) +
+                          ': Erro Semântico: Procedures não possuem retorno para serem usados em expressões!')
+                else:
+                    aux = aux.data_type
+        if aux is not None:
+            if aux != 'boolean':
+                print(str(stmt.program_line) +
+                      ': Erro Semântico: Condição de um while deve resultar em um booleano!')
         for item in stmt.body:
             item.accept(self)
 
@@ -440,6 +455,10 @@ class Visitor:
                 if aux.data_type == 'int':
                     return
         elif isinstance(index, expressions.StructGet) or isinstance(index, expressions.ConstVarAccess):
+            aux = index.accept(self)
+            if aux == 'int':
+                return
+        elif isinstance(index, expressions.Binary):
             aux = index.accept(self)
             if aux == 'int':
                 return

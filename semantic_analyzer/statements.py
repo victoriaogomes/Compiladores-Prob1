@@ -148,10 +148,11 @@ class Struct(Stmt):
 
 class While(Stmt):
     # variables: lista de variáveis da struct
-    def __init__(self, condition, body, scope):
+    def __init__(self, condition, body, scope, pl):
         self.body = body
         self.condition = condition
         self.scope = scope
+        self.program_line = pl
 
     def accept(self, visitor):
         return visitor.visitWhileStmt(self)

@@ -201,7 +201,11 @@
 56 DEL ;
 57 IDE vickyChatona
 57 DEL [
-57 CAD "oi"
+57 NRO 2.0
+57 ART +
+57 NRO 3.0
+57 ART *
+57 NRO 6.3
 57 DEL ]
 57 REL =
 57 NRO 1
@@ -340,7 +344,7 @@
 77 DEL }
 78 PRE while
 78 DEL (
-78 PRE true
+78 PRE false
 78 DEL )
 78 DEL {
 79 PRE print
