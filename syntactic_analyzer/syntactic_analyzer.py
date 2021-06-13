@@ -1501,6 +1501,7 @@ class SyntacticAnalyzer:
     def typedef_declaration(self):
         if self.tokens_list.lookahead().lexeme == 'typedef':
             self.Line.tp = 'typedef'
+            self.Line.program_line = self.tokens_list.lookahead().file_line
             self.tokens_list.consume_token()
             print("VAI PARA CONT TYPEDEF DEC")
             return self.cont_typedef_dec()

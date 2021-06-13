@@ -119,8 +119,15 @@ class Visitor:
                   ': Erro Semântico: Tentativa de acessar uma function/procedure que não existe!')
             return None
         elif len(func_pos) > 1:
-            print(str(expr.func_exp.file_line) +
-                  ': Erro Semântico: Nome de idenficador indexa dois elementos distintos!')
+            all_func = True
+            for item in func_pos:
+                if item.tp not in {'function', 'procedure'}:
+                    all_func = False
+            if not all_func:
+                print(str(expr.func_exp.file_line) +
+                      ': Erro Semântico: Nome de idenficador indexa dois elementos distintos!')
+            else:
+                
             return None
         elif func_pos[0].tp not in {'function', 'procedure'}:
             print(str(expr.func_exp.file_line) +
@@ -368,27 +375,43 @@ class Visitor:
             item.accept(self)
 
     def visitTypedefStmt(self, stmt):
-        if stmt.old_tp in {'int', 'string', 'real', 'boolean'}:
-            return stmt.old_tp
-        elif stmt.old_tp.find('.') != -1:
-            aux = stmt.old_tp.split('.')
-            typedef_pos = self.symbol_table.get_line(aux[1], stmt.scope)
+        aux = stmt.old_tp
+        if aux in {'int', 'string', 'real', 'boolean'}:
+            return aux
+        elif aux.find('.') != -1:
+            aux = aux.split('.')[1]
+        if stmt.scope != -1:
+            typedef_pos = self.symbol_table.get_line(aux, stmt.scope)
+            name_pos2 = self.symbol_table.get_line(aux, -1)
+            if not typedef_pos and not name_pos2:
+                    print(str(stmt.tp_name.file_line) + ': Erro Semântico: Uso do typedef para redefinir tipo inexistente!')
+            else:
+                if typedef_pos and name_pos2:
+                    print(str(stmt.tp_name.file_line) + ': Erro Semântico: Uso do typedef idêntico em mais de um local!')
+            new_type_pos = self.symbol_table.get_line(stmt.tp_name.lexeme, stmt.scope)
+            new_type_pos2 = self.symbol_table.get_line(stmt.tp_name.lexeme, -1)
+            if new_type_pos is not None and new_type_pos2 is not None:
+                print(str(stmt.tp_name.file_line) + ': Erro Semântico: Já existem outros elementos indexados com esse identificador: '
+                      + stmt.tp_name.lexeme + '!')
+            else:
+                if new_type_pos is not None and len(new_type_pos) > 1 and\
+                        stmt.tp_name.file_line > new_type_pos[0].program_line:
+                    print(str(stmt.tp_name.file_line) + ': Erro Semântico: Já existem outros elementos indexados com esse identificador:'
+                          + stmt.tp_name.lexeme + '!')
+                elif new_type_pos2 is not None and len(new_type_pos2) > 1 and\
+                        stmt.tp_name.file_line > new_type_pos2[0].program_line:
+                    print(str(stmt.tp_name.file_line) + ': Erro Semântico: Já existem outros elementos indexados com esse identificador:'
+                          + stmt.tp_name.lexeme + '!')
+        else:
+            typedef_pos = self.symbol_table.get_line(aux, stmt.scope)
             if not typedef_pos:
                 print(str(stmt.tp_name.file_line) + ': Erro Semântico: Uso do typedef para redefinir tipo inexistente!')
-        else:
-            if stmt.scope != -1:
-                typedef_pos = self.symbol_table.get_line(stmt.old_tp, stmt.scope)
-                name_pos2 = self.symbol_table.get_line(stmt.old_tp, -1)
-                if not typedef_pos and not name_pos2:
-                        print(str(stmt.tp_name.file_line) + ': Erro Semântico: Uso do typedef para redefinir tipo inexistente!')
-                else:
-                    if typedef_pos and name_pos2:
-                        print(str(stmt.tp_name.file_line) + ': Erro Semântico: Uso do typedef idêntico em mais de um local!')
-            else:
-                typedef_pos = self.symbol_table.get_line(stmt.old_tp, stmt.scope)
-                if not typedef_pos:
-                    print(str(stmt.tp_name.file_line) + ': Erro Semântico: Uso do typedef para redefinir tipo inexistente!')
-
+            new_type_pos = self.symbol_table.get_line(stmt.tp_name.lexeme, stmt.scope)
+            if new_type_pos is not None:
+                if len(new_type_pos) > 1 and\
+                        stmt.tp_name.file_line > new_type_pos[0].program_line:
+                    print(str(stmt.tp_name.file_line) + ': Erro Semântico: Já existem outros elementos indexados com esse identificador: '
+                          + stmt.tp_name.lexeme + '!')
 
     def visitReadStmt(self, stmt):
         pass
@@ -447,7 +470,7 @@ class Visitor:
     def check_index(self, index, file_line):
         if isinstance(index, expressions.LiteralVal):
             aux = index.accept(self)
-            if isinstance(aux, int):
+            if aux == 'int':
                 return
         elif isinstance(index, expressions.FunctionCall):
             aux = index.accept(self)

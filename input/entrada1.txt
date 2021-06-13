@@ -18,7 +18,8 @@ struct Vicky extends Pessoa{
     }
 }
 
-typedef struct pessoa Person;
+typedef struct Pessoa Person;
+typedef struct Vicky Person;
 typedef Person Humano;
 typedef Humano Human;
 typedef idades matriz;
@@ -51,7 +52,7 @@ procedure start() {
     var{
         real vickyChatona[10];
         real bobona = 10000;
-        string p, x;
+        string p[30] = ["oi", 2, "Ola"], x;
     }
     p = x;
     vickyChatona[2.0+3.0*6.3] = 1;
