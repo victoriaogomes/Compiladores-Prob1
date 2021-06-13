@@ -127,7 +127,7 @@ class Visitor:
                 print(str(expr.func_exp.file_line) +
                       ': Erro Semântico: Nome de idenficador indexa dois elementos distintos!')
             else:
-                
+                pass
             return None
         elif func_pos[0].tp not in {'function', 'procedure'}:
             print(str(expr.func_exp.file_line) +

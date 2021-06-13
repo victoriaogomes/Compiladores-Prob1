@@ -25,7 +25,7 @@ typedef Humano Human;
 typedef idades matriz;
 typedef string inteiro;
 
-function int vontade(){
+function int vontade(int vetor){
     var{
         int vontade = 0;
         inteiro idade = 0;

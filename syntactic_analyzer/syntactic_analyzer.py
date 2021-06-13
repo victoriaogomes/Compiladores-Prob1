@@ -24,9 +24,11 @@ class SyntacticAnalyzer:
         self.func_stmt = stmt.Function(None, None, None, None, None, None)
         self.proc_stmt = stmt.Procedure(None, None, None, None)
 
-    def add_new_symb_table(self):
+    def add_new_symb_table(self, f_line):
         self.scope_index += 1
-        self.global_table.add_child(s.SymbolTable(self.global_table))
+        aux = s.SymbolTable(self.global_table)
+        aux.set_line(f_line)
+        self.global_table.add_child(aux)
 
     def add_line_on_table(self, reset_type):
         if not self.global_scope:
@@ -966,8 +968,9 @@ class SyntacticAnalyzer:
         if self.tokens_list.lookahead().lexeme == '{':
             self.tokens_list.consume_token()
             self.func_stmt.params = self.Line.params
+            aux = deepcopy(self.Line)
             self.add_line_on_table(0)
-            self.add_new_symb_table()
+            self.add_new_symb_table(aux)
             self.global_scope = False
             self.func_stmt.scope = self.get_scope()
             print("VAI PARA BLOCK FUNCTION CONTENT")
@@ -1572,8 +1575,9 @@ class SyntacticAnalyzer:
                 if self.tokens_list.lookahead().lexeme == '{':
                     self.tokens_list.consume_token()
                     print("VAI PARA PROC CONTENT")
+                    aux = deepcopy(self.Line)
                     self.add_line_on_table(0)
-                    self.add_new_symb_table()
+                    self.add_new_symb_table(aux)
                     self.global_scope = False
                     self.proc_stmt.scope = self.get_scope()
                     self.proc_content()
@@ -1598,8 +1602,9 @@ class SyntacticAnalyzer:
                 self.proc_param()
                 if self.tokens_list.lookahead().lexeme == '{':
                     self.tokens_list.consume_token()
+                    aux = deepcopy(self.Line)
                     self.add_line_on_table(0)
-                    self.add_new_symb_table()
+                    self.add_new_symb_table(aux)
                     self.global_scope = False
                     print("VAI PARA PROC CONTENT")
                     self.proc_content()

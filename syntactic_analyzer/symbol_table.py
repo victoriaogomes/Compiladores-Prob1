@@ -6,6 +6,12 @@ class SymbolTable:
         self.lines = dict()
         self.key = 0
 
+    def set_line(self, line):
+        if len(line.params) > 0:
+            for item in line.params:
+                var_name = item.split('.')
+                self.add_line(TableLine(var_name[1], 'var', var_name[0], [], line.program_line, [True]))
+
     def add_child(self, child):
         self.children.append(child)
 
