@@ -40,17 +40,26 @@ function int vontade(){
     }
     return vontade;
 }
+function Pessoa retorna(){
+    var{
+      struct Pessoa Pessoa1;
+    }
+    Pessoa1.cpf = "000.000.000-00";
+    return Pessoa1;
+}
 procedure start() {
     var{
         real vickyChatona[10];
         real bobona = 10000;
+        string p, x;
     }
+    p = x;
     vickyChatona["oi"] = 1;
     print(ano(), mes(), dia());
     print(bobona+bobona,bobona/2.0, 2.0*bobona*bobona);
     print(idade, vetor[0], matriz[12][43]);
     ano(matriz[1][2], vetor[1], tchau);
-    if(false) then{
+    if(bobona + 500000.0 > 1000.0) then{
         x = ano() + 1;
     }
     else{

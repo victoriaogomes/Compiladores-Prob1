@@ -549,6 +549,7 @@ class SyntacticAnalyzer:
     def init_array(self):
         if self.tokens_list.lookahead().lexeme == '[':
             self.tokens_list.consume_token()
+            self.Line.value
             print("VAI PARA EXPRESSION")
             expr1 = self.expression()
             self.Line.value.append(expr1)
@@ -1006,7 +1007,9 @@ class SyntacticAnalyzer:
     # Código interno de uma função, seguido do retorno obrigatório
     def function_content(self):
         print("VAI PARA CODE")
-        self.func_stmt.body.extend(self.code())
+        var_code = self.code()
+        if var_code is not None:
+            self.func_stmt.body.extend(var_code)
         if self.tokens_list.lookahead().lexeme == 'return':
             self.func_stmt.return_expr = stmt.Returnf(self.tokens_list.lookahead(), None, self.get_scope())
             self.tokens_list.consume_token()
@@ -2049,7 +2052,7 @@ class SyntacticAnalyzer:
 # =====================================================================================================================
 # ================================================ If..then..else =====================================================
     def conditional(self):
-        if_stmt = stmt.IfThenElse(None, None, None, self.get_scope())
+        if_stmt = stmt.IfThenElse(None, None, None, self.get_scope(), None)
         if self.tokens_list.lookahead().lexeme == 'if':
             if_stmt.program_line = self.tokens_list.lookahead().file_line
             self.tokens_list.consume_token()

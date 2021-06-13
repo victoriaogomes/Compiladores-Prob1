@@ -20,6 +20,42 @@ class SymbolTable:
             result = [value for key, value in self.children[tp_access].lines.items() if key.endswith('.' + search_key)]
         return result
 
+    def update_var_const(self, search_key, tp_access, value):
+        if tp_access == -1:
+            result = [key for key, value in self.lines.items() if key.endswith('.' + search_key)]
+            self.lines[result[0]].value[0] = value
+        else:
+            result = [key for key, value in self.children[tp_access].lines.items() if key.endswith('.' + search_key)]
+            self.lines[result[0]].value[0] = value
+
+    def update_array(self, search_key, tp_access, array_index, value):
+        if tp_access == -1:
+            result = [key for key, value in self.lines.items() if key.endswith('.' + search_key)]
+            if array_index == -1:
+                self.lines[result[0]].value = value
+            else:
+                self.lines[result[0]].value[array_index] = value
+        else:
+            result = [key for key, value in self.children[tp_access].lines.items() if key.endswith('.' + search_key)]
+            if array_index == -1:
+                self.lines[result[0]].value = value
+            else:
+                self.lines[result[0]].value[array_index] = value
+
+    def update_matrix(self, search_key, tp_access, array_index, matrix_index, value):              # Se passar -1 para array index ele atualiza o vetor/matriz de uma vez
+        if tp_access == -1:
+            result = [key for key, value in self.lines.items() if key.endswith('.' + search_key)]
+            if array_index == -1:
+                self.lines[result[0]].value = value
+            else:
+                self.lines[result[0]].value[array_index][matrix_index] = value
+        else:
+            result = [key for key, value in self.children[tp_access].lines.items() if key.endswith('.' + search_key)]
+            if array_index == -1:
+                self.lines[result[0]].value = value
+            else:
+                self.lines[result[0]].value[array_index][matrix_index] = value
+
 
 class TableLine:
 

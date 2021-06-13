@@ -7,6 +7,17 @@ class Visitor:
         self.symbol_table = symbol_table
 
     def visitAssignExpr(self, expr):
+        aux = expr.expr.accept(self)
+        if isinstance(expr.expr, expressions.FunctionCall):
+            if aux is not None:
+                if aux.tp == 'procedure':
+                    print(str(expr.token_operator.file_line) +
+                          ': Erro Semântico: Procedures não possuem retorno para serem usados em expressões de atribuição!')
+                    return None
+                else:
+                    aux = aux.data_type
+                    if aux not in {'int', 'string', 'real', 'boolean'}:
+                        aux = self.get_old_type(aux, -1)
         if isinstance(expr.token, expressions.StructGet):
             pass
         elif isinstance(expr.token, expressions.ConstVarAccess):
@@ -14,9 +25,19 @@ class Visitor:
             if not var_pos:
                 print(str(expr.token.token_name.file_line) + ': Erro Semântico: Tentativa de atribuir valor uma variável que '
                                                   'não existe!')
+                return None
             elif var_pos[0].tp != 'var':
                 print(str(expr.token.token_name.file_line) + ': Erro Semântico: Identificador informado não corresponde a '
                                                   'uma variável, e sim a uma', var_pos[0].tp + '!')
+                return None
+            if var_pos[0].data_type not in {'int', 'string', 'real', 'boolean'}:
+                temp = self.get_old_type(var_pos[0].data_type, expr.scope)
+            else:
+                temp = var_pos[0].data_type
+            if aux != temp:
+                print(str(expr.token.token_name.file_line) + ': Erro Semântico: Tentativa de atribuir um valor',
+                      aux, 'a uma variável de tipo primitivo', temp + '!')
+                return None
 
     def visitBinaryExpr(self, expr):
         right_side = ''
@@ -24,14 +45,7 @@ class Visitor:
         error_left = False
         error_right = False
         if isinstance(expr.left_expr, expressions.LiteralVal):
-            left_side = str(type(expr.left_expr.accept(self)))
-            left_side = left_side.split('\'')[1]
-            if left_side == 'float':
-                left_side = 'real'
-            elif left_side == 'str':
-                left_side = 'string'
-            elif left_side == 'bool':
-                left_side = 'boolean'
+            left_side = expr.left_expr.accept(self)
         elif isinstance(expr.left_expr, expressions.ConstVarAccess) or \
                 isinstance(expr.left_expr, expressions.Binary) or \
                 isinstance(expr.left_expr, expressions.StructGet) or \
@@ -46,17 +60,11 @@ class Visitor:
                 if aux.tp == 'procedure':
                     print(str(expr.token_operator.file_line) +
                           ': Erro Semântico: Procedures não possuem retorno para serem usados em expressões!')
+                    return None
                 else:
                     left_side = aux.data_type
         if isinstance(expr.right_expr, expressions.LiteralVal):
-            right_side = str(type(expr.right_expr.accept(self)))
-            right_side = right_side.split('\'')[1]
-            if right_side == 'float':
-                right_side = 'real'
-            elif right_side == 'str':
-                right_side = 'string'
-            elif right_side == 'bool':
-                right_side = 'boolean'
+            right_side = expr.right_expr.accept(self)
         elif isinstance(expr.right_expr, expressions.ConstVarAccess) or \
                 isinstance(expr.right_expr, expressions.Binary) or \
                 isinstance(expr.right_expr, expressions.StructGet) or \
@@ -71,6 +79,7 @@ class Visitor:
                 if aux.tp == 'procedure':
                     print(str(expr.token_operator.file_line) +
                           ': Erro Semântico: Procedures não possuem retorno para serem usados em expressões!')
+                    return None
                 else:
                     right_side = aux.data_type
         if not error_right and not error_left:
@@ -88,7 +97,10 @@ class Visitor:
                     if expr.token_operator.lexeme in {'>', '>=', '<', '<=', '+', '-', '*', '/'}:
                         print(str(expr.token_operator.file_line) +
                               ': Erro Semântico: Os operadores informados não podem ser utilizados com tipos booleanos!')
-                return left_side
+                if expr.token_operator.lexeme in {'>', '>=', '<', '<=', '==', '!='}:
+                    return 'boolean'
+                else:
+                    return left_side
             elif left_side is not None and right_side is not None:
                 print(str(expr.token_operator.file_line) +
                       ': Erro Semântico: Operações devem ser realizadas com tipo iguais!')
@@ -118,13 +130,25 @@ class Visitor:
 
 
     def visitStructGetExpr(self, expr):
-        pass
+        if isinstance(expr.struct_name, expressions.StructGet):
+            return expr.struct_name.accept(self)
+        elif isinstance(expr.struct_name, expressions.ConstVarAccess):
+            expr.struct_name.accept(self)
+        # elif isinstance()
 
     def visitGroupingExpr(self, expr):
         return expr.expr.accept(self)
 
     def visitLitValExpr(self, expr):
-        return expr.value
+        aux = str(type(expr.value))
+        aux = aux.split('\'')[1]
+        if aux == 'float':
+            aux = 'real'
+        elif aux == 'str':
+            aux = 'string'
+        elif aux == 'bool':
+            aux = 'boolean'
+        return aux
 
     def visitLogicalExpr(self, expr):
         pass
@@ -136,6 +160,7 @@ class Visitor:
                 if aux.tp == 'procedure':
                     print(str(expr.token_operator.file_line) +
                           ': Erro Semântico: Procedures não possuem retorno para serem usados em expressões!')
+                    return None
                 else:
                     aux = aux.data_type
         if expr.token_operator.lexeme == '!':
@@ -143,11 +168,16 @@ class Visitor:
                 if aux != 'boolean':
                     print(str(expr.token_operator.file_line) +
                           ': Erro Semântico: O operador ! só pode ser usado antes de elementos do tipo booleano!')
+                    return None
+                else: return aux
         elif expr.token_operator.lexeme == '-':
             if aux is not None:
                 if aux not in {'real', 'int'}:
                     print(str(expr.token_operator.file_line) +
                           ': Erro Semântico: O operador - só pode ser usado antes de elementos do tipo real ou inteiro!')
+                    return None
+                else: return aux
+        return None
 
 
     def visitConstVarAccessExpr(self, expr):
@@ -176,7 +206,10 @@ class Visitor:
             self.check_index(expr.index_array, expr.token_name.file_line)
         if expr.index_matrix:
             self.check_index(expr.index_matrix, expr.token_name.file_line)
-        return var_pos[0].data_type
+        aux = var_pos[0].data_type
+        if var_pos[0].data_type not in {'int', 'real', 'boolean', 'string'}:
+            aux = self.get_old_type(var_pos[0].data_type, expr.scope)
+        return aux
 
     # TODO: VERIFICAR SE JA EXISTE OUTRO PROCEDURE COM O MESMO NOME (OVERLOADING)
     # TODO: VERIFICAR SE O RETORNO É DO MESMO TIPO QUE ESPERADO
@@ -192,7 +225,6 @@ class Visitor:
     def visitExpressionStmt(self, stmt):
         pass
 
-    # TODO: VERIFICAR SE A CONDIÇÂO È UM BOOLEANO
     def visitIfThenElseStmt(self, stmt):
         for item in stmt.then_branch:
             item.accept(self)
@@ -207,9 +239,10 @@ class Visitor:
                           ': Erro Semântico: Procedures não possuem retorno para serem usados em expressões!')
                 else:
                     aux = aux.data_type
-        if aux != 'boolean':
-            print(str(stmt.program_line) +
-                  ': Erro Semântico: Condição de um if deve resultar em um booleano!')
+        if aux is not None:
+            if aux != 'boolean':
+                print(str(stmt.program_line) +
+                      ': Erro Semântico: Condição de um if deve resultar em um booleano!')
 
     def visitPrintfStmt(self, stmt):
         for item in stmt.expression:
@@ -272,17 +305,33 @@ class Visitor:
             if not const_pos[0].program_line >= stmt.program_line:
                 print(str(stmt.program_line) +
                       ': Erro semântico: Já existe outro elemento indexado com esse identificador!')
-        for val in stmt.init_val:
-            if isinstance(val, expressions.LiteralVal):
-                if not ((type(val.value) is str and stmt.tp == 'string') or
-                        (type(val.value) is int and stmt.tp == 'int') or
-                        (type(val.value) is float and stmt.tp == 'real') or
-                        (type(val.value) is bool and stmt.tp == 'boolean')):
-                    print(str(stmt.program_line) + ': Erro semântico: Constante do tipo ' + stmt.tp,
-                          'armazenando valor de tipo:', str(type(val.value)) + '!')
+        aux = stmt.tp
+        if stmt.tp not in {'string', 'int', 'real', 'boolean'}:
+            if stmt.tp.find('.') != -1:
+                temp = stmt.tp.split('.')
+                aux = temp[1]
             else:
-                # Caso o valor inicial seja uma expressão
-                val.accept(self)
+                aux = self.get_old_type(stmt.tp, stmt.scope)
+        if aux:
+            # Verifica se o valor armazenado nessa variável é compatível com seu tipo
+            if stmt.init_val is not None:
+                for val in stmt.init_val:
+                    if isinstance(val, expressions.LiteralVal):
+                        if not ((type(val.value) is str and aux == 'string') or
+                                (type(val.value) is int and aux == 'int') or
+                                (type(val.value) is float and aux == 'real') or
+                                (type(val.value) is bool and aux == 'boolean')):
+                            print(str(stmt.program_line) + ': Erro semântico: Variável do tipo ' + aux,
+                                  'armazenando valor de tipo:', str(type(val.value)))
+                    else:
+                        # Caso o valor inicial seja uma expressão
+                        val.accept(self)
+        else:
+            print(str(stmt.program_line) + ': Erro semântico: Variável de tipo inexistente!')
+        if stmt.index_array is not None:
+            self.check_index(stmt.index_array, stmt.program_line)
+        if stmt.index_matrix is not None:
+            self.check_index(stmt.index_matrix, stmt.program_line)
 
     def visitConstBlockStmt(self, stmt):
         for const in stmt.const_list:
@@ -299,7 +348,9 @@ class Visitor:
                 pass
 
     def visitWhileStmt(self, stmt):
-        pass
+        aux = stmt.condition.accept(self)
+        for item in stmt.body:
+            item.accept(self)
 
     def visitTypedefStmt(self, stmt):
         if stmt.old_tp in {'int', 'string', 'real', 'boolean'}:
