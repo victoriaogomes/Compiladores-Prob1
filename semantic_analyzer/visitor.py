@@ -119,15 +119,7 @@ class Visitor:
                   ': Erro Semântico: Tentativa de acessar uma function/procedure que não existe!')
             return None
         elif len(func_pos) > 1:
-            all_func = True
-            for item in func_pos:
-                if item.tp not in {'function', 'procedure'}:
-                    all_func = False
-            if not all_func:
-                print(str(expr.func_exp.file_line) +
-                      ': Erro Semântico: Nome de idenficador indexa dois elementos distintos!')
-            else:
-                pass
+            self.check_overloading(func_pos, expr.func_exp.file_line)
             return None
         elif func_pos[0].tp not in {'function', 'procedure'}:
             print(str(expr.func_exp.file_line) +
@@ -222,14 +214,18 @@ class Visitor:
             aux = self.get_old_type(var_pos[0].data_type, expr.scope)
         return aux
 
-    # TODO: VERIFICAR SE JA EXISTE OUTRO PROCEDURE COM O MESMO NOME (OVERLOADING)
     # TODO: VERIFICAR SE O RETORNO É DO MESMO TIPO QUE ESPERADO
     def visitFunctionStmt(self, stmt):
+        func_pos = self.symbol_table.get_line(stmt.token_name.file_line, stmt.scope)
+        if len(func_pos) > 1:
+            self.check_overloading(func_pos, stmt.token_name.file_line)
         for line in stmt.body:
             line.accept(self)
 
-    #TODO: VERIFICAR SE JA EXISTE OUTRO PROCEDURE COM O MESMO NOME (OVERLOADING)
     def visitProcedureStmt(self, stmt):
+        proc_pos = self.symbol_table.get_line(stmt.token_name.file_line, stmt.scope)
+        if len(proc_pos) > 1:
+            self.check_overloading(proc_pos, stmt.token_name.file_line)
         for line in stmt.body:
             line.accept(self)
 
@@ -487,3 +483,24 @@ class Visitor:
                 return
         print(str(file_line) + ': Erro Semântico: Um index de um vetor/matriz deve ser'
                                ' um valor do tipo inteiro!')
+
+    def check_overloading(self, func_pos, file_line):
+        all_func = True
+        for item in func_pos:
+            if item.tp not in {'function', 'procedure'}:
+                all_func = False
+        if not all_func:
+            print(str(file_line) + ': Erro Semântico: Nome de idenficador indexa dois elementos distintos!')
+        else:
+            base = []
+            all_eq = False
+            for item in func_pos[0].params:
+                base.append(item.split('.')[0])
+            for item in func_pos:
+                actual = []
+                for sub_item in item.params:
+                    actual.append(sub_item.split('.')[0])
+                if set(base) == set(actual):
+                    all_eq = True
+            if all_eq:
+                print(str(file_line) + ': Erro Semântico: Chamada a Função/Procedure duplicada -> Possível sobrecarga usada de forma errada!')
