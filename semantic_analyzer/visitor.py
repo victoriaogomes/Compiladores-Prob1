@@ -154,11 +154,20 @@ class Visitor:
 
 
     def visitStructGetExpr(self, expr):
-        if isinstance(expr.struct_name, expressions.StructGet):
-            return expr.struct_name.accept(self)
-        elif isinstance(expr.struct_name, expressions.ConstVarAccess):
+        if isinstance(expr.struct_name, expressions.ConstVarAccess):
             expr.struct_name.accept(self)
-        # elif isinstance()
+        else:
+            struct_pos = self.symbol_table.get_line(expr.struct_name.lexeme, expr.scope)
+            if not struct_pos:
+                print(str(expr.struct_name.file_line) + ': Erro Semântico: Acesso a variavel do tipo struct inexistente!')
+            elif len(struct_pos) > 1:
+                print(str(expr.struct_name.file_line) + ': Erro Semântico: Identificador', expr.struct_name.lexeme,
+                      'indexa mais de um elemento!')
+            elif struct_pos[0].data_type.split('.')[0] != 'struct':
+                print(str(expr.struct_name.file_line) + ': Erro Semântico: Identificador', expr.struct_name.lexeme,
+                      'não indexa uma struct!')
+            elif not expr.struct_name.file_line >= struct_pos[0].program_line:
+                print(str(expr.struct_name.file_line) + ': Erro Semântico: Tentativa de acesso a uma variável do tipo struct ainda não declarada!')
 
     def visitGroupingExpr(self, expr):
         return expr.expr.accept(self)
