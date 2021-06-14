@@ -114,12 +114,13 @@ class Visitor:
 
     def visitFCallExpr(self, expr):
         func_pos = self.symbol_table.get_line(expr.func_exp.lexeme, -1)
+        aux = []
         if not func_pos:
             print(str(expr.func_exp.file_line) +
                   ': Erro Semântico: Tentativa de acessar uma function/procedure que não existe!')
             return None
         elif len(func_pos) > 1:
-            self.check_overloading(func_pos, expr.func_exp.file_line)
+            aux = self.check_overloading(func_pos, expr.func_exp.file_line, 'Chamada')
             return None
         elif func_pos[0].tp not in {'function', 'procedure'}:
             print(str(expr.func_exp.file_line) +
@@ -129,6 +130,26 @@ class Visitor:
             print(str(expr.func_exp.file_line) +
                   ': Erro Semântico: Tentativa de acesso a uma function/procedure ainda não definido!')
             return None
+        if aux is not None:
+            base = []
+            if expr.arguments is not None:
+                for item in expr.arguments:
+                    base.append(item.accept(self))
+
+            if len(aux) == 0:
+                for item in func_pos[0].params:
+                    aux.append(item.split('.')[0])
+                if set(base) != set(aux):
+                    print(str(expr.func_exp.file_line) +
+                          ': Erro Semântico: Chamada de função usando parâmetros de tipo incorreto!')
+            else:
+                params_okay = False
+                for item in aux:
+                    if set(item) == set(aux):
+                        params_okay = True
+                if not params_okay:
+                    print(str(expr.func_exp.file_line) +
+                          ': Erro Semântico: Chamada de função usando parâmetros de tipo incorreto!')
         return func_pos[0]
 
 
@@ -216,16 +237,22 @@ class Visitor:
 
     # TODO: VERIFICAR SE O RETORNO É DO MESMO TIPO QUE ESPERADO
     def visitFunctionStmt(self, stmt):
-        func_pos = self.symbol_table.get_line(stmt.token_name.file_line, stmt.scope)
+        func_pos = self.symbol_table.get_line(stmt.token_name.lexeme, -1)
         if len(func_pos) > 1:
-            self.check_overloading(func_pos, stmt.token_name.file_line)
+            self.check_overloading(func_pos, stmt.token_name.file_line, 'Declaração')
         for line in stmt.body:
             line.accept(self)
+        tp = stmt.return_expr.accept(self)
+        if tp is not None:
+            if tp != stmt.return_tp.lexeme:
+                print(str(stmt.return_expr.keyword.file_line) +
+                      ': Erro Semântico: O tipo de retorno não bate com o esperado! Esperava:', stmt.return_tp.lexeme
+                      + ', recebi:', tp)
 
     def visitProcedureStmt(self, stmt):
-        proc_pos = self.symbol_table.get_line(stmt.token_name.file_line, stmt.scope)
+        proc_pos = self.symbol_table.get_line(stmt.token_name.lexeme, -1)
         if len(proc_pos) > 1:
-            self.check_overloading(proc_pos, stmt.token_name.file_line)
+            self.check_overloading(proc_pos, stmt.token_name.file_line, 'Declaração')
         for line in stmt.body:
             line.accept(self)
 
@@ -264,7 +291,7 @@ class Visitor:
             else:
                 item.accept(self)
 
-    def visitReturnStmt(self, stmt):
+    def visitReturnfStmt(self, stmt):
         return stmt.value.accept(self)
 
     def visitVarStmt(self, stmt):
@@ -345,14 +372,50 @@ class Visitor:
             const.accept(self)
 
     def visitStructStmt(self, stmt):
+        struct_pos = self.symbol_table.get_line(stmt.name.lexeme, stmt.scope)
+        if len(struct_pos) > 1 and stmt.name.file_line != struct_pos[0].program_line:
+            print(str(stmt.name.file_line) + ': Erro Semântico: Identificador', stmt.name.lexeme, 'está sendo utilizado para indexar mais de um elemento!')
         if stmt.extends is not None:
             extends_pos = self.symbol_table.get_line(stmt.extends.lexeme, stmt.scope)
             if not extends_pos:
                 print(str(stmt.name.file_line) + ': Erro Semântico: Struct está extendendo uma Struct que não existe!')
+            elif len(extends_pos) > 1:
+                print(str(stmt.name.file_line) +
+                      ': Erro Semântico: Struct extendendo outro elemento usando um identificador que indexa mais de um elemento!')
             elif stmt.name.file_line < extends_pos[0].program_line and extends_pos[0].tp == 'struct':
                 print(str(stmt.name.file_line) + ': Erro Semântico: Struct está extendendo uma Struct ainda não definida!')
+            elif extends_pos[0].tp not in {'struct', 'typedef'}:
+                print(str(stmt.name.file_line) + ': Erro Semântico: Struct não pode extender do tipo:', extends_pos[0].tp + '!')
             elif extends_pos[0].tp == 'typedef':
-                pass
+                if stmt.name.file_line < extends_pos[0].program_line:
+                    print(str(stmt.name.file_line) + ': Erro Semântico: Struct extendendo algo tipo não definido!')
+                    return
+                old_tp = self.get_old_type(extends_pos[0].name, stmt.scope)
+                if old_tp is not None:
+                    if old_tp in {'int', 'string', 'real', 'boolean'}:
+                        print(str(stmt.name.file_line) + ': Erro Semântico: Struct não pode extender do tipo:', old_tp + '!')
+                    else:
+                        line = self.symbol_table.get_line(old_tp, stmt.scope)
+                        if line:
+                            if stmt.scope != -1:
+                                line2 = self.symbol_table.get_line(old_tp, -1)
+                                if line:
+                                    if line[0].tp != 'struct':
+                                        print(str(stmt.name.file_line) + ': Erro Semântico: Struct não pode extender do tipo:', old_tp + '!')
+                                    elif stmt.name.file_line < line[0].program_line:
+                                        print(str(stmt.name.file_line) + ': Erro Semântico: Struct está extendendo uma Struct ainda não definida!')
+                                elif line2:
+                                    if line2[0].tp != 'struct':
+                                        print(str(stmt.name.file_line) + ': Erro Semântico: Struct não pode extender do tipo:', old_tp + '!')
+                                    elif stmt.name.file_line < line2[0].program_line:
+                                        print(str(stmt.name.file_line) + ': Erro Semântico: Struct está extendendo uma Struct ainda não definida!')
+                            else:
+                                if line[0].tp != 'struct':
+                                    print(str(stmt.name.file_line) + ': Erro Semântico: Struct não pode extender do tipo:', old_tp + '!')
+                                elif stmt.name.file_line < line[0].program_line:
+                                    print(str(stmt.name.file_line) + ': Erro Semântico: Struct está extendendo uma Struct ainda não definida!')
+                        else:
+                            print(str(stmt.name.file_line) + ': Erro Semântico: Struct está extendendo um elemento inexistente!')
 
     def visitWhileStmt(self, stmt):
         aux = stmt.condition.accept(self)
@@ -484,7 +547,7 @@ class Visitor:
         print(str(file_line) + ': Erro Semântico: Um index de um vetor/matriz deve ser'
                                ' um valor do tipo inteiro!')
 
-    def check_overloading(self, func_pos, file_line):
+    def check_overloading(self, func_pos, file_line, tp):
         all_func = True
         for item in func_pos:
             if item.tp not in {'function', 'procedure'}:
@@ -493,14 +556,21 @@ class Visitor:
             print(str(file_line) + ': Erro Semântico: Nome de idenficador indexa dois elementos distintos!')
         else:
             base = []
+            all_args = []
             all_eq = False
             for item in func_pos[0].params:
                 base.append(item.split('.')[0])
-            for item in func_pos:
+            all_args.append(base)
+            for item in func_pos[1:]:
                 actual = []
                 for sub_item in item.params:
                     actual.append(sub_item.split('.')[0])
+                all_args.append(actual)
                 if set(base) == set(actual):
                     all_eq = True
             if all_eq:
-                print(str(file_line) + ': Erro Semântico: Chamada a Função/Procedure duplicada -> Possível sobrecarga usada de forma errada!')
+                if file_line > func_pos[0].program_line or tp == 'Chamada':
+                    print(str(file_line) + ': Erro Semântico: ' + tp + ' de Função/Procedure duplicada -> Possível sobrecarga usada de forma errada!')
+                    return None
+                return all_args
+        return None

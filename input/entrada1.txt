@@ -5,29 +5,28 @@ const{
     string mensagem = "";
     int chamander = 0;
 }
-struct Pessoa{
-    var{
-        int idades[10][11];
-        string cpf;
-        string nomes[j+1];
-    }
-}
-struct Vicky extends Pessoa{
-    var{
-        int i;
-    }
-}
 
 typedef struct Pessoa Person;
-typedef struct Vicky Person;
 typedef Person Humano;
 typedef Humano Human;
 typedef idades matriz;
 typedef string inteiro;
 
+struct Vicky extends Human{
+    var{
+        int i;
+    }
+}
+
+struct Vicky{
+    var{
+        int i;
+    }
+}
+
 function int vontade(int vetor){
     var{
-        int vontade = 0;
+        int vontade;
         inteiro idade = 0;
         struct Pessoa bruno;
     }
@@ -41,19 +40,28 @@ function int vontade(int vetor){
     }
     return vontade;
 }
-function Pessoa retorna(){
+function int retorna(int z){
     var{
       struct Pessoa Pessoa1;
     }
     Pessoa1.cpf = "000.000.000-00";
     return Pessoa1;
 }
+
+function int retorna(int z){
+    return Pessoa2;
+}
+
 procedure start() {
     var{
         real vickyChatona[10];
         real bobona = 10000;
         string p[30] = ["oi", 2, "Ola"], x;
+        int teste = 0;
     }
+    vontade(teste);
+    vontade(bobona);
+    vontade();
     p = x;
     vickyChatona[2.0+3.0*6.3] = 1;
     print(ano(), mes(), dia());

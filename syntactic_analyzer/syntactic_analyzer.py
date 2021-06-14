@@ -152,6 +152,7 @@ class SyntacticAnalyzer:
             print("VAI PARA METHODS")
             self.methods()
         elif self.tokens_list.lookahead().lexeme == 'procedure':
+            self.Line.program_line = self.tokens_list.lookahead().file_line
             self.tokens_list.consume_token()
             self.Line.tp = 'procedure'
             print("VAI PARA PROC CHOICE")
@@ -385,7 +386,7 @@ class SyntacticAnalyzer:
 
     # Estado chamado uma única vez, para garantir que no mínimo uma variável será declarada no bloco var
     def first_var(self):
-        if self.tokens_list.lookahead().lexeme in {'int', 'real', 'boolean', 'struct'}:
+        if self.tokens_list.lookahead().lexeme in {'int', 'real', 'boolean', 'struct', 'string'}:
             print("VAI PRA CONTINUE SOS")
             self.continue_sos()
             print("VAI PRA VAR ID")
@@ -874,6 +875,7 @@ class SyntacticAnalyzer:
     def function(self):
         self.func_stmt = stmt.Function(None, [], [], None, None, None)
         if self.tokens_list.lookahead().lexeme == 'function':
+            self.Line.program_line = self.tokens_list.lookahead().file_line
             self.tokens_list.consume_token()
             self.Line.tp = 'function'
             print("VAI PARA DATA TYPE")
