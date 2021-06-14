@@ -213,7 +213,7 @@ class SyntacticAnalyzer:
     # Estado que possui as maneiras possíveis de acessar uma variável usando os modificadores global e local
     def scope_variable(self):
         if self.tokens_list.lookahead().lexeme in {'global', 'local'}:
-            tp_access = self.tokens_list.lookahead()
+            tp_access = self.tokens_list.lookahead().lexeme
             self.tokens_list.consume_token()
             if self.tokens_list.lookahead().lexeme == '.':
                 self.tokens_list.consume_token()
@@ -226,9 +226,9 @@ class SyntacticAnalyzer:
                         aux.token_name = name
                         aux.access_type = tp_access
                     elif isinstance(aux, expr.StructGet):
-                        aux.struct_name = expr.ConstVarAccess(name, tp_access)
+                        aux.struct_name = expr.ConstVarAccess(name, self.get_scope(), tp_access)
                     elif aux is None:
-                        aux = expr.ConstVarAccess(name, tp_access)
+                        aux = expr.ConstVarAccess(name, self.get_scope(), tp_access)
                     return aux
                 else:
                     print("ERRO NO ESTADO SCOPE Variable!!!!!")
@@ -1737,7 +1737,7 @@ class SyntacticAnalyzer:
                 if isinstance(temp.token, expr.ConstVarAccess):
                     temp.token.token_name = aux
                 elif isinstance(temp.token, expr.StructGet):
-                    temp.token.struct_name = aux
+                    temp.token.struct_name = expr.ConstVarAccess(aux, self.get_scope())
                 elif temp.token is None:
                     temp.token = expr.ConstVarAccess(aux, self.get_scope())
             elif isinstance(temp, expr.PrePosIncDec):
@@ -1760,7 +1760,7 @@ class SyntacticAnalyzer:
                 elif isinstance(temp.token, expr.StructGet):
                     temp.token.struct_name = aux
                 elif temp.token is None:
-                    temp.token = expr.ConstVarAccess(aux, self.get_scope())
+                    temp.token = aux
             elif isinstance(temp, expr.PrePosIncDec):
                 temp.variable = aux
             return temp

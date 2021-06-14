@@ -31,7 +31,11 @@ function int vontade(int vetor){
         struct Pessoa bruno;
     }
     ++Pessoa.i;
+    idade = 11;
     Pessoa.cpf = "000.105.123-65";
+    Pessoa1.Pessoa.cpf = "000.105.123-65";
+    global.Pessoa.cpf = "000.105.123-65";
+    global.idade = 10;
     if(vontade == 0) then{
         vontade++;
     }

@@ -43,7 +43,9 @@ class FunctionCall(Expr):
 
 
 class StructGet(Expr):
-    # Pessoa.nome
+    # struct_name: é um constVarAccess
+    # attr_name:   é um constVarAccess
+    # scope:       é um inteiro que indica o escopo atual
     def __init__(self, struct_name, attr_name, scope):
         self.struct_name = struct_name
         self.attr_name = attr_name
