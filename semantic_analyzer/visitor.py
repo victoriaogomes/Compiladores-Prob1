@@ -167,23 +167,22 @@ class Visitor:
                               expr.struct_name.token_name.lexeme + ' não se refere a uma struct!')
                     else:
                         line = self.symbol_table.get_line(old_tp, expr.scope)
-                        if line:
-                            if expr.scope != -1:
-                                line2 = self.symbol_table.get_line(old_tp, -1)
-                                if line:
-                                    if line[0].tp != 'struct':
-                                        print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: O identificador',
-                                              expr.struct_name.token_name.lexeme + ' não se refere a uma struct!')
-                                elif line2:
-                                    if line2[0].tp != 'struct':
-                                        print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: O identificador',
-                                              expr.struct_name.token_name.lexeme + ' não se refere a uma struct!')
-                            else:
+                        if expr.scope != -1:
+                            line2 = self.symbol_table.get_line(old_tp, -1)
+                            if line:
                                 if line[0].tp != 'struct':
                                     print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: O identificador',
                                           expr.struct_name.token_name.lexeme + ' não se refere a uma struct!')
+                            elif line2:
+                                if line2[0].tp != 'struct':
+                                    print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: O identificador',
+                                          expr.struct_name.token_name.lexeme + ' não se refere a uma struct!')
+                            else:
+                                print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Struct está extendendo um elemento inexistente!')
                         else:
-                            print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Struct está extendendo um elemento inexistente!')
+                            if line[0].tp != 'struct':
+                                print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: O identificador',
+                                      expr.struct_name.token_name.lexeme + ' não se refere a uma struct!')
             print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Identificador', expr.struct_name.token_name.lexeme,
                   'não indexa uma struct!')
         elif not expr.struct_name.token_name.file_line >= struct_pos[0].program_line:
@@ -431,12 +430,14 @@ class Visitor:
                             line2 = self.symbol_table.get_line(old_tp, -1)
                             if line:
                                 if line[0].tp != 'struct':
-                                    print(str(stmt.name.file_line) + ': Erro Semântico: Struct não pode extender do tipo:', old_tp + '!')
+                                    if not line2:
+                                        print(str(stmt.name.file_line) + ': Erro Semântico: Struct não pode extender do tipo:', old_tp + '!')
                                 elif stmt.name.file_line < line[0].program_line:
                                     print(str(stmt.name.file_line) + ': Erro Semântico: Struct está extendendo uma Struct ainda não definida!')
-                            elif line2:
+                            if line2:
                                 if line2[0].tp != 'struct':
-                                    print(str(stmt.name.file_line) + ': Erro Semântico: Struct não pode extender do tipo:', old_tp + '!')
+                                    if not line:
+                                        print(str(stmt.name.file_line) + ': Erro Semântico: Struct não pode extender do tipo:', old_tp + '!')
                                 elif stmt.name.file_line < line2[0].program_line:
                                     print(str(stmt.name.file_line) + ': Erro Semântico: Struct está extendendo uma Struct ainda não definida!')
                             else:
