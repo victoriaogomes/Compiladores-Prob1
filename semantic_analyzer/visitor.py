@@ -174,6 +174,7 @@ class Visitor:
                     if old_tp in {'int', 'string', 'real', 'boolean'}:
                         print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: O identificador',
                               expr.struct_name.token_name.lexeme + ' não se refere a uma struct!')
+                        return None
                     else:
                         line = self.symbol_table.get_line(old_tp, expr.struct_name.scope)
                         if expr.struct_name.scope != -1:
@@ -183,36 +184,63 @@ class Visitor:
                                     if not line2:
                                         print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: O identificador',
                                               expr.struct_name.token_name.lexeme + ' não se refere a uma struct!')
+                                        return None
                             if line2:
                                 if line2[0].tp != 'struct':
                                     if not line:
                                         print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: O identificador',
                                               expr.struct_name.token_name.lexeme + ' não se refere a uma struct!')
+                                        return None
                             if not line and not line2:
                                 print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Struct de tipo inexistente!')
+                                return None
                         else:
                             if line[0].tp != 'struct':
                                 print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: O identificador',
                                       expr.struct_name.token_name.lexeme + ' não se refere a uma struct!')
-            print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Identificador', expr.struct_name.token_name.lexeme,
-                  'não indexa uma struct!')
-            return None
+                                return None
+            else:
+                print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Identificador', expr.struct_name.token_name.lexeme,
+                      'não indexa uma struct!')
+                return None
         elif not expr.struct_name.token_name.file_line >= struct_pos[0].program_line:
             print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Tentativa de acesso a uma variável do tipo struct ainda não declarada!')
             return None
         if isinstance(expr.att_name, expressions.ConstVarAccess):
-            attr_ok = False
             if line2 == '' and line == '':
                 tp_name = struct_pos[0].data_type.split('.')[1]
                 tp_pos = self.symbol_table.get_line(tp_name, expr.struct_name.scope)
-                if expr.struct_name.scope != -1:
+                attr_ok = self.check_attr(tp_pos, expr.struct_name.token_name.file_line, expr.attr_name.token_name.lexeme)
+                if expr.struct_name.scope != -1 and (attr_ok is None or not attr_ok):
                     tp_pos2 = self.symbol_table.get_line(tp_name, -1)
-                    
-                else:
-                    attr_ok = self.check_attr(tp_pos, expr.struct_name.token_name.file_line, expr.attr_name.token_name.lexeme)
-                    if attr_ok is not None and not attr_ok:
-                        print(str(expr.struct_name.token_name.file_line) +
-                              ': Erro Semântico: Tentativa de acessar atributo inexistente em struct do tipo', tp_name,  '!')
+                    attr_ok = self.check_attr(tp_pos2, expr.struct_name.token_name.file_line, expr.attr_name.token_name.lexeme)
+                if attr_ok is None:
+                    print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Identificador',
+                          expr.attr_name.token_name.lexeme, 'indexa um tipo de struct indefinido!')
+                elif not attr_ok:
+                    print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Identificador',
+                          expr.attr_name.token_name.lexeme, 'indexa uma variavel inexistente no tipo de struct', expr.struct_name.token_name.lexeme + '!')
+            else:
+                if line:
+                    attr_ok = self.check_attr(line, expr.struct_name.token_name.file_line, expr.struct_name.token_name.lexeme)
+                    if attr_ok is None:
+                        if not line2:
+                            print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Identificador',
+                                  expr.attr_name.token_name.lexeme, 'indexa um tipo de struct indefinido!')
+                    elif not attr_ok:
+                        if not line2:
+                            print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Identificador',
+                                  expr.attr_name.token_name.lexeme, 'indexa uma variavel inexistente no tipo de struct', expr.struct_name.token_name.lexeme + '!')
+                if line2:
+                    attr_ok = self.check_attr(line2, expr.struct_name.token_name.file_line, expr.struct_name.token_name.lexeme)
+                    if attr_ok is None:
+                        if not line:
+                            print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Identificador',
+                                  expr.attr_name.token_name.lexeme, 'indexa um tipo de struct indefinido!')
+                    elif not attr_ok:
+                        if not line:
+                            print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Identificador',
+                                  expr.attr_name.token_name.lexeme, 'indexa uma variavel inexistente no tipo de struct', expr.struct_name.token_name.lexeme + '!')
 
 
     def visitGroupingExpr(self, expr):
@@ -465,7 +493,7 @@ class Visitor:
                                         print(str(stmt.name.file_line) + ': Erro Semântico: Struct não pode extender do tipo:', old_tp + '!')
                                 elif stmt.name.file_line < line2[0].program_line:
                                     print(str(stmt.name.file_line) + ': Erro Semântico: Struct está extendendo uma Struct ainda não definida!')
-                            else:
+                            if not line and not line2:
                                 print(str(stmt.name.file_line) + ': Erro Semântico: Struct está extendendo um elemento inexistente!')
                         else:
                             if line[0].tp != 'struct':
@@ -638,6 +666,5 @@ class Visitor:
                 if param.split('.')[1] == lexeme:
                     attr_ok = True
         else:
-            print(str(file_line) + ': Erro Semântico: Identificador', lexeme, 'indexa um tipo de struct indefinido!')
             return None
         return attr_ok
