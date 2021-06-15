@@ -152,20 +152,44 @@ class Visitor:
         return func_pos[0]
 
     def visitStructGetExpr(self, expr):
-        if isinstance(expr.struct_name, expressions.ConstVarAccess):
-            expr.struct_name.accept(self)
-        else:
-            struct_pos = self.symbol_table.get_line(expr.struct_name.lexeme, expr.scope)
-            if not struct_pos:
-                print(str(expr.struct_name.file_line) + ': Erro Semântico: Acesso a variavel do tipo struct inexistente!')
-            elif len(struct_pos) > 1:
-                print(str(expr.struct_name.file_line) + ': Erro Semântico: Identificador', expr.struct_name.lexeme,
-                      'indexa mais de um elemento!')
-            elif struct_pos[0].data_type.split('.')[0] != 'struct':
-                print(str(expr.struct_name.file_line) + ': Erro Semântico: Identificador', expr.struct_name.lexeme,
-                      'não indexa uma struct!')
-            elif not expr.struct_name.file_line >= struct_pos[0].program_line:
-                print(str(expr.struct_name.file_line) + ': Erro Semântico: Tentativa de acesso a uma variável do tipo struct ainda não declarada!')
+        struct_pos = self.symbol_table.get_line(expr.struct_name.token_name.lexeme, expr.scope)
+        if not struct_pos:
+            print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Acesso a variavel do tipo struct inexistente!')
+        elif len(struct_pos) > 1:
+            print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Identificador', expr.struct_name.token_name.lexeme,
+                  'indexa mais de um elemento!')
+        elif struct_pos[0].data_type.find('struct') == -1:
+            if struct_pos[0].data_type not in {'int', 'string', 'boolean', 'real'}:
+                old_tp = self.get_old_type(struct_pos[0].data_type, expr.scope)
+                if old_tp is not None:
+                    if old_tp in {'int', 'string', 'real', 'boolean'}:
+                        print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: O identificador',
+                              expr.struct_name.token_name.lexeme + ' não se refere a uma struct!')
+                    else:
+                        line = self.symbol_table.get_line(old_tp, expr.scope)
+                        if line:
+                            if expr.scope != -1:
+                                line2 = self.symbol_table.get_line(old_tp, -1)
+                                if line:
+                                    if line[0].tp != 'struct':
+                                        print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: O identificador',
+                                              expr.struct_name.token_name.lexeme + ' não se refere a uma struct!')
+                                elif line2:
+                                    if line2[0].tp != 'struct':
+                                        print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: O identificador',
+                                              expr.struct_name.token_name.lexeme + ' não se refere a uma struct!')
+                            else:
+                                if line[0].tp != 'struct':
+                                    print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: O identificador',
+                                          expr.struct_name.token_name.lexeme + ' não se refere a uma struct!')
+                        else:
+                            print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Struct está extendendo um elemento inexistente!')
+            print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Identificador', expr.struct_name.token_name.lexeme,
+                  'não indexa uma struct!')
+        elif not expr.struct_name.token_name.file_line >= struct_pos[0].program_line:
+            print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Tentativa de acesso a uma variável do tipo struct ainda não declarada!')
+        if isinstance(expr.att_name, expressions.ConstVarAccess):
+            pass
 
     def visitGroupingExpr(self, expr):
         return expr.expr.accept(self)
@@ -395,7 +419,7 @@ class Visitor:
                 print(str(stmt.name.file_line) + ': Erro Semântico: Struct não pode extender do tipo:', extends_pos[0].tp + '!')
             elif extends_pos[0].tp == 'typedef':
                 if stmt.name.file_line < extends_pos[0].program_line:
-                    print(str(stmt.name.file_line) + ': Erro Semântico: Struct extendendo algo tipo não definido!')
+                    print(str(stmt.name.file_line) + ': Erro Semântico: Struct extendendo tipo ainda não definido!')
                     return
                 old_tp = self.get_old_type(extends_pos[0].name, stmt.scope)
                 if old_tp is not None:
@@ -403,26 +427,25 @@ class Visitor:
                         print(str(stmt.name.file_line) + ': Erro Semântico: Struct não pode extender do tipo:', old_tp + '!')
                     else:
                         line = self.symbol_table.get_line(old_tp, stmt.scope)
-                        if line:
-                            if stmt.scope != -1:
-                                line2 = self.symbol_table.get_line(old_tp, -1)
-                                if line:
-                                    if line[0].tp != 'struct':
-                                        print(str(stmt.name.file_line) + ': Erro Semântico: Struct não pode extender do tipo:', old_tp + '!')
-                                    elif stmt.name.file_line < line[0].program_line:
-                                        print(str(stmt.name.file_line) + ': Erro Semântico: Struct está extendendo uma Struct ainda não definida!')
-                                elif line2:
-                                    if line2[0].tp != 'struct':
-                                        print(str(stmt.name.file_line) + ': Erro Semântico: Struct não pode extender do tipo:', old_tp + '!')
-                                    elif stmt.name.file_line < line2[0].program_line:
-                                        print(str(stmt.name.file_line) + ': Erro Semântico: Struct está extendendo uma Struct ainda não definida!')
-                            else:
+                        if stmt.scope != -1:
+                            line2 = self.symbol_table.get_line(old_tp, -1)
+                            if line:
                                 if line[0].tp != 'struct':
                                     print(str(stmt.name.file_line) + ': Erro Semântico: Struct não pode extender do tipo:', old_tp + '!')
                                 elif stmt.name.file_line < line[0].program_line:
                                     print(str(stmt.name.file_line) + ': Erro Semântico: Struct está extendendo uma Struct ainda não definida!')
+                            elif line2:
+                                if line2[0].tp != 'struct':
+                                    print(str(stmt.name.file_line) + ': Erro Semântico: Struct não pode extender do tipo:', old_tp + '!')
+                                elif stmt.name.file_line < line2[0].program_line:
+                                    print(str(stmt.name.file_line) + ': Erro Semântico: Struct está extendendo uma Struct ainda não definida!')
+                            else:
+                                print(str(stmt.name.file_line) + ': Erro Semântico: Struct está extendendo um elemento inexistente!')
                         else:
-                            print(str(stmt.name.file_line) + ': Erro Semântico: Struct está extendendo um elemento inexistente!')
+                            if line[0].tp != 'struct':
+                                print(str(stmt.name.file_line) + ': Erro Semântico: Struct não pode extender do tipo:', old_tp + '!')
+                            elif stmt.name.file_line < line[0].program_line:
+                                print(str(stmt.name.file_line) + ': Erro Semântico: Struct está extendendo uma Struct ainda não definida!')
 
     def visitWhileStmt(self, stmt):
         aux = stmt.condition.accept(self)
