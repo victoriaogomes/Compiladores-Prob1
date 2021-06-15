@@ -1648,7 +1648,9 @@ class SyntacticAnalyzer:
             self.proc_content3()
         else:
             print("VAI PARA CODE")
-            self.proc_stmt.body.extend(self.code())
+            code_lines = self.code()
+            if code_lines is not None:
+                self.proc_stmt.body.extend(code_lines)
             if self.tokens_list.lookahead().lexeme == '}':
                 self.tokens_list.consume_token()
                 self.global_scope = True

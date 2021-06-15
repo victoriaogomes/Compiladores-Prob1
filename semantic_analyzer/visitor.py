@@ -24,8 +24,8 @@ class Visitor:
             if not isinstance(expr.token.token_name, expressions.StructGet) and not isinstance(expr.token.token_name, expressions.ConstVarAccess):
                 var_pos = self.symbol_table.get_line(expr.token.token_name.lexeme, expr.scope)
                 if not var_pos:
-                    print(str(expr.token.token_name.file_line) + ': Erro Semântico: Tentativa de atribuir valor uma variável que '
-                                                                 'não existe!')
+                    print(str(expr.token.token_name.file_line) + ': Erro Semântico: Tentativa de atribuir valor a variável \'' + expr.token.token_name.lexeme +
+                                                                 '\', que não existe!')
                     return None
                 elif var_pos[0].tp != 'var':
                     print(str(expr.token.token_name.file_line) + ': Erro Semântico: Identificador informado não corresponde a '
@@ -41,7 +41,7 @@ class Visitor:
                     temp = var_pos[0].data_type
                 if aux != temp:
                     print(str(expr.token.token_name.file_line) + ': Erro Semântico: Tentativa de atribuir um valor',
-                          aux, 'a uma variável de tipo primitivo', temp + '!')
+                          aux, 'a variável \'' + expr.token.token_name.lexeme + '\', que é do tipo primitivo', temp + '!')
                     return None
 
     def visitBinaryExpr(self, expr):
@@ -116,11 +116,12 @@ class Visitor:
         aux = []
         if not func_pos:
             print(str(expr.func_exp.file_line) +
-                  ': Erro Semântico: Tentativa de acessar uma function/procedure que não existe!')
+                  ': Erro Semântico: Chamada a function/procedure \''  + expr.func_exp.lexeme + '\', a qual não existe!')
             return None
         elif len(func_pos) > 1:
             aux = self.check_overloading(func_pos, expr.func_exp.file_line, 'Chamada')
-            return None
+            if aux is None:
+                return None
         elif func_pos[0].tp not in {'function', 'procedure'}:
             print(str(expr.func_exp.file_line) +
                   ': Erro Semântico: O identificador não corresponde a uma function ou procedure!')
@@ -129,26 +130,24 @@ class Visitor:
             print(str(expr.func_exp.file_line) +
                   ': Erro Semântico: Tentativa de acesso a uma function/procedure ainda não definido!')
             return None
-        if aux is not None:
-            base = []
-            if expr.arguments is not None:
-                for item in expr.arguments:
-                    base.append(item.accept(self))
-
-            if len(aux) == 0:
-                for item in func_pos[0].params:
-                    aux.append(item.split('.')[0])
-                if set(base) != set(aux):
-                    print(str(expr.func_exp.file_line) +
-                          ': Erro Semântico: Chamada de função usando parâmetros de tipo incorreto!')
-            else:
-                params_okay = False
-                for item in aux:
-                    if set(item) == set(aux):
-                        params_okay = True
-                if not params_okay:
-                    print(str(expr.func_exp.file_line) +
-                          ': Erro Semântico: Chamada de função usando parâmetros de tipo incorreto!')
+        base = []
+        if expr.arguments is not None:
+            for item in expr.arguments:
+                base.append(item.accept(self))
+        if len(aux) == 0 and len(base) > 0 and base[0] is not None:
+            for item in func_pos[0].params:
+                aux.append(item.split('.')[0])
+            if set(base) != set(aux):
+                print(str(expr.func_exp.file_line) +
+                      ': Erro Semântico: Chamada de função usando parâmetros de tipo incorreto! Esperava ' + ','.join(aux) + ', e recebi ' + ','.join(base))
+        else:
+            params_okay = False
+            for item in aux:
+                if set(item) == set(aux):
+                    params_okay = True
+            if not params_okay:
+                print(str(expr.func_exp.file_line) +
+                      ': Erro Semântico: Chamada de função usando parâmetros de tipo incorreto!')
         return func_pos[0]
 
     def visitStructGetExpr(self, expr):
@@ -195,7 +194,10 @@ class Visitor:
                                 print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Struct de tipo inexistente!')
                                 return None
                         else:
-                            if line[0].tp != 'struct':
+                            if not line:
+                                print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Struct de tipo inexistente!')
+                                return None
+                            elif line[0].tp != 'struct':
                                 print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: O identificador',
                                       expr.struct_name.token_name.lexeme + ' não se refere a uma struct!')
                                 return None
@@ -294,7 +296,7 @@ class Visitor:
         var_pos = self.symbol_table.get_line(expr.token_name.lexeme, expr.scope)
         if not var_pos:
             print(str(expr.token_name.file_line) +
-                  ': Erro Semântico: Tentativa de acessar uma variável/constante que não existe!')
+                  ': Erro Semântico: Tentativa de acessar a variável/constante \'' + expr.token_name.lexeme + '\', que não existe!')
             return None
         elif len(var_pos) > 1:
             print(str(expr.token_name.file_line) +
@@ -366,7 +368,7 @@ class Visitor:
             if isinstance(item, expressions.FunctionCall):
                 func_pos = self.symbol_table.get_line(item.func_exp.lexeme, -1)
                 if not func_pos:
-                    print(str(stmt.program_line) + ': Erro semântico: Chamada a função inexistente!')
+                    print(str(stmt.program_line) + ': Erro semântico: Chamada a função \'' + item.func_exp.lexeme + '\', a qual não existe!')
                 elif func_pos[0].data_type == '':
                     print(str(stmt.program_line) + ': Erro semântico: Não é possível passar '
                                                    'procedimentos como argumento de prints, pois os mesmos'
@@ -400,8 +402,8 @@ class Visitor:
                                 (type(val.value) is int and aux == 'int') or
                                 (type(val.value) is float and aux == 'real') or
                                 (type(val.value) is bool and aux == 'boolean')):
-                            print(str(stmt.program_line) + ': Erro semântico: Variável do tipo ' + aux,
-                                  'armazenando valor de tipo:', str(type(val.value)))
+                            print(str(stmt.program_line) + ': Erro semântico: Variável do tipo \'' + aux +
+                                  '\' sendo inicializada com valor de tipo \'' + str(type(val.value)).split('\'')[1] + '\'')
                     else:
                         # Caso o valor inicial seja uma expressão
                         val.accept(self)
@@ -438,8 +440,8 @@ class Visitor:
                                 (type(val.value) is int and aux == 'int') or
                                 (type(val.value) is float and aux == 'real') or
                                 (type(val.value) is bool and aux == 'boolean')):
-                            print(str(stmt.program_line) + ': Erro semântico: Variável do tipo ' + aux,
-                                  'armazenando valor de tipo:', str(type(val.value)))
+                            print(str(stmt.program_line) + ': Erro semântico: Variável do tipo \'' + aux +
+                                  '\' sendo inicializada com valor de tipo \'' + str(type(val.value)).split('\'')[1] + '\'')
                     else:
                         # Caso o valor inicial seja uma expressão
                         val.accept(self)
@@ -457,7 +459,7 @@ class Visitor:
     def visitStructStmt(self, stmt):
         struct_pos = self.symbol_table.get_line(stmt.name.lexeme, stmt.scope)
         if len(struct_pos) > 1 and stmt.name.file_line != struct_pos[0].program_line:
-            print(str(stmt.name.file_line) + ': Erro Semântico: Identificador', stmt.name.lexeme, 'está sendo utilizado para indexar mais de um elemento!')
+            print(str(stmt.name.file_line) + ': Erro Semântico: Identificador \'' + stmt.name.lexeme + '\' está sendo utilizado para indexar mais de um elemento!')
         if stmt.extends is not None:
             extends_pos = self.symbol_table.get_line(stmt.extends.lexeme, stmt.scope)
             if not extends_pos:
@@ -494,12 +496,14 @@ class Visitor:
                                 elif stmt.name.file_line < line2[0].program_line:
                                     print(str(stmt.name.file_line) + ': Erro Semântico: Struct está extendendo uma Struct ainda não definida!')
                             if not line and not line2:
-                                print(str(stmt.name.file_line) + ': Erro Semântico: Struct está extendendo um elemento inexistente!')
+                                print(str(stmt.name.file_line) + ': Erro Semântico: Struct extendendo elemento \'' + old_tp + '\', o qual é inexistente!')
                         else:
-                            if line[0].tp != 'struct':
+                            if not line:
+                                print(str(stmt.name.file_line) + ': Erro Semântico: Struct extendendo elemento \'' + old_tp + '\', o qual é inexistente!')
+                            elif line[0].tp != 'struct':
                                 print(str(stmt.name.file_line) + ': Erro Semântico: Struct não pode extender do tipo:', old_tp + '!')
                             elif stmt.name.file_line < line[0].program_line:
-                                print(str(stmt.name.file_line) + ': Erro Semântico: Struct está extendendo uma Struct ainda não definida!')
+                                print(str(stmt.name.file_line) + ': Erro Semântico: Struct extendendo struct \'' + old_tp + '\', a qual ainda não foi definida!')
 
     def visitWhileStmt(self, stmt):
         aux = stmt.condition.accept(self)
@@ -527,7 +531,7 @@ class Visitor:
             typedef_pos = self.symbol_table.get_line(aux, stmt.scope)
             name_pos2 = self.symbol_table.get_line(aux, -1)
             if not typedef_pos and not name_pos2:
-                print(str(stmt.tp_name.file_line) + ': Erro Semântico: Uso do typedef para redefinir tipo inexistente!')
+                print(str(stmt.tp_name.file_line) + ': Erro Semântico: Uso do typedef para redefinir tipo \'' + aux + '\', sendo que esse tipo é inexistente!')
             else:
                 if typedef_pos and name_pos2:
                     print(str(stmt.tp_name.file_line) + ': Erro Semântico: Uso do typedef idêntico em mais de um local!')
@@ -548,7 +552,7 @@ class Visitor:
         else:
             typedef_pos = self.symbol_table.get_line(aux, stmt.scope)
             if not typedef_pos:
-                print(str(stmt.tp_name.file_line) + ': Erro Semântico: Uso do typedef para redefinir tipo inexistente!')
+                print(str(stmt.tp_name.file_line) + ': Erro Semântico: Uso do typedef para redefinir tipo \'' + aux + '\', sendo que esse tipo é inexistente!')
             new_type_pos = self.symbol_table.get_line(stmt.tp_name.lexeme, stmt.scope)
             if new_type_pos is not None:
                 if len(new_type_pos) > 1 and \
@@ -637,7 +641,7 @@ class Visitor:
             if item.tp not in {'function', 'procedure'}:
                 all_func = False
         if not all_func:
-            print(str(file_line) + ': Erro Semântico: Nome de idenficador indexa dois elementos distintos!')
+            print(str(file_line) + ': Erro Semântico: Nome de idenficador indexa dois elementos de tipos distintos!')
         else:
             base = []
             all_args = []
