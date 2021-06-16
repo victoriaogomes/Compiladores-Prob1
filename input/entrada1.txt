@@ -17,48 +17,15 @@ var{
 }
 
 typedef struct Pessoa Person;
-typedef Person Humano;
-typedef Humano Human;
-typedef idades matriz;
-typedef string inteiro;
-
-struct Vicky extends Human{
-    var{
-        int i;
-    }
-}
-
-struct Vicky{
-    var{
-        int i;
-    }
-}
 
 function int vontade(int vetor){
     var{
         int vontade;
         inteiro idade = 0;
     }
-    ++Pessoa.i;
-    idade = 11;
-    Pessoa.cpf = "000.105.123-65";
-    Pessoa1.Pessoa.cpf = "000.105.123-65";
     global.bruno.cpf = "000.105.123-65";
-    global.idade = 10;
-    if(vontade == 0) then{
-        vontade++;
-    }
-    else{
-        vovo = 1;
-    }
+
     return vontade;
-}
-function Person retorna(int z){
-    var{
-      Person Pessoa1;
-    }
-    Pessoa1.cpf = "000.000.000-00";
-    return Pessoa1;
 }
 
 procedure start() {
@@ -72,37 +39,6 @@ procedure start() {
     if(Bruno == "Legalzao" && Vicky == "Chatona") then{
         print("Eh nois pivete");
     }
-    xila.i = 22;
-    xila.i++;
-    vontade(teste);
-    vontade(bobona);
-    vontade();
-    p = x;
-    vickyChatona[2.0+3.0*6.3] = 1;
-    print(ano(), mes(), dia());
-    print(bobona+bobona,bobona/2.0, 2.0*bobona*bobona);
-    print(idade, vetor[0], matriz[12][43]);
-    ano(matriz[1][2], vetor[1], tchau);
-    if(bobona + 500000.0 > 1000.0) then{
-        x = retorna(10) + 1;
-    }
-    else{
-        if(nome == "vic") then{
-            print(aha);
-        }
-        else{
-            if(ano == 2021) then{
-                print(ahauhu);
-            }
-        }
-    }
-    if(true) then {
-        banana = 12;
-    }
-    while(false){
-        print("TIO SAM, Socorro!");
-    }
-    read(vetor[1]);
-    //read(pessoa.nome[1], ano[2][3], data);
+    
 }
 

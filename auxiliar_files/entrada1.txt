@@ -1,10 +1,20 @@
 var{
     int i , j = a(), k = 10+(60);
 }
-const{
-    string mensagem = "";
-    int chamander = 0;
+
+
+struct Vicky extends Human{
+    var{
+        int i;
+    }
 }
+
+struct Vicky{
+    var{
+        int i;
+    }
+}
+
 
 struct Pessoa{
     var{
@@ -21,18 +31,6 @@ typedef Person Humano;
 typedef Humano Human;
 typedef idades matriz;
 typedef string inteiro;
-
-struct Vicky extends Human{
-    var{
-        int i;
-    }
-}
-
-struct Vicky{
-    var{
-        int i;
-    }
-}
 
 function int vontade(int vetor){
     var{

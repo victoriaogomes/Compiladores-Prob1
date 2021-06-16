@@ -208,7 +208,7 @@ class Visitor:
             return None
         if isinstance(expr.attr_name, expressions.ConstVarAccess):
             if line2 == '' and line == '':
-                tp_name = struct_pos[0].name
+                tp_name = struct_pos[0].data_type.split('.')[1]
                 tp_pos = self.symbol_table.get_line(tp_name, expr.struct_name.scope)
                 attr_ok = self.check_attr(tp_pos, expr.attr_name.token_name.lexeme)
                 if expr.struct_name.scope != -1 and (attr_ok is None or not attr_ok):
