@@ -39,6 +39,6 @@ procedure start() {
     if(Bruno == "Legalzao" && Vicky == "Chatona") then{
         print("Eh nois pivete");
     }
-    
+
 }
 

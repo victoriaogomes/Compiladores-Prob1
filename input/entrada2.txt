@@ -1,4 +1,4 @@
-
+// Testes de struct
 struct roda{
     var{
         real raio;
