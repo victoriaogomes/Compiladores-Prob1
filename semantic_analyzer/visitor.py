@@ -19,8 +19,13 @@ class Visitor:
                     aux = aux.data_type
                     if aux not in {'int', 'string', 'real', 'boolean'}:
                         aux = self.get_old_type(aux, -1)
+        if isinstance(expr.token, expressions.ConstVarAccess):
+            var_pos = self.symbol_table.get_line(expr.token.token_name.lexeme, expr.token.scope)
+            if var_pos and var_pos[0].tp == 'const':
+                print(str(expr.token_operator.file_line) +
+                      ': Erro Semântico: O valor armazenado em uma constante não pode ser alterado!')
         temp = expr.token.accept(self)
-        if aux != temp:
+        if temp is not None and aux != temp:
             print(str(expr.token.token_name.file_line) + ': Erro Semântico: Tentativa de atribuir um valor',
                   aux, 'a variável \'' + expr.token.token_name.lexeme + '\', que é do tipo primitivo', temp + '!')
             return None
@@ -49,6 +54,9 @@ class Visitor:
                     return None
                 else:
                     left_side = aux.data_type
+        else:
+            print(str(expr.token_operator.file_line) +
+                  ': Erro Semântico: Elemento de tipo não permitido em expressão!')
         if isinstance(expr.right_expr, expressions.LiteralVal):
             right_side = expr.right_expr.accept(self)
         elif isinstance(expr.right_expr, expressions.ConstVarAccess) or \
@@ -68,6 +76,9 @@ class Visitor:
                     return None
                 else:
                     right_side = aux.data_type
+        else:
+            print(str(expr.token_operator.file_line) +
+                  ': Erro Semântico: Elemento de tipo não permitido em expressão!')
         if not error_right and not error_left:
             if left_side == right_side:
                 if left_side == 'int':
@@ -97,7 +108,7 @@ class Visitor:
         aux = []
         if not func_pos:
             print(str(expr.func_exp.file_line) +
-                  ': Erro Semântico: Chamada a function/procedure \''  + expr.func_exp.lexeme + '\', a qual não existe!')
+                  ': Erro Semântico: Chamada a function/procedure \'' + expr.func_exp.lexeme + '\', a qual não existe!')
             return None
         elif len(func_pos) > 1:
             aux = self.check_overloading(func_pos, expr.func_exp.file_line, 'Chamada')
@@ -199,19 +210,23 @@ class Visitor:
                     attr_ok = self.check_attr(tp_pos2, expr.attr_name.token_name.lexeme)
                 if attr_ok is None:
                     print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Identificador',
-                          expr.attr_name.token_name.lexeme, 'indexa um tipo de struct indefinido!')
+                          expr.attr_name.token_name.lexeme, 'indexa um elemento em um tipo de struct indefinido!')
                     return None
                 elif not attr_ok:
                     print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Identificador',
                           expr.attr_name.token_name.lexeme, 'indexa uma variavel inexistente no tipo de struct', expr.struct_name.token_name.lexeme + '!')
                     return None
+                if expr.attr_name.index_array:
+                    self.check_index(expr.attr_name.index_array, expr.attr_name.token_name.file_line)
+                if expr.attr_name.index_matrix:
+                    self.check_index(expr.attr_name.index_matrix, expr.attr_name.token_name.file_line)
             else:
                 if line:
                     attr_ok = self.check_attr(line, expr.struct_name.token_name.lexeme)
                     if attr_ok is None:
                         if not line2:
                             print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Identificador',
-                                  expr.attr_name.token_name.lexeme, 'indexa um tipo de struct indefinido!')
+                                  expr.attr_name.token_name.lexeme, 'indexa um elemento em um tipo de struct indefinido!')
                             return None
                     elif not attr_ok:
                         if not line2:
@@ -223,7 +238,7 @@ class Visitor:
                     if attr_ok is None:
                         if not line:
                             print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Identificador',
-                                  expr.attr_name.token_name.lexeme, 'indexa um tipo de struct indefinido!')
+                                  expr.attr_name.token_name.lexeme, 'indexa um elemento em um tipo de struct indefinido!')
                             return None
                     elif not attr_ok:
                         if not line:
@@ -233,8 +248,6 @@ class Visitor:
         elif isinstance(expr.attr_name, expressions.StructGet):
             return expr.attr_name.accept(self)
         return attr_ok
-
-
 
     def visitGroupingExpr(self, expr):
         return expr.expr.accept(self)
@@ -251,7 +264,59 @@ class Visitor:
         return aux
 
     def visitLogicalExpr(self, expr):
-        pass
+        right_side = ''
+        left_side = ''
+        error_left = False
+        error_right = False
+        if isinstance(expr.left_expr, expressions.LiteralVal) or \
+                isinstance(expr.left_expr, expressions.ConstVarAccess) or \
+                isinstance(expr.left_expr, expressions.Binary) or \
+                isinstance(expr.left_expr, expressions.StructGet) or \
+                isinstance(expr.left_expr, expressions.Grouping) or \
+                isinstance(expr.left_expr, expressions.Unary) or \
+                isinstance(expr.left_expr, expressions.Logical):
+            left_side = expr.left_expr.accept(self)
+        elif isinstance(expr.left_expr, expressions.FunctionCall):
+            aux = expr.left_expr.accept(self)
+            if aux is None:
+                error_left = True
+            else:
+                if aux.tp == 'procedure':
+                    print(str(expr.token_operator.file_line) +
+                          ': Erro Semântico: Procedures não possuem retorno para serem usados em expressões!')
+                    return None
+                else:
+                    left_side = aux.data_type
+        else:
+            print(str(expr.token_operator.file_line) +
+                  ': Erro Semântico: Elemento de tipo não permitido em expressão!')
+        if isinstance(expr.right_expr, expressions.LiteralVal) or \
+                isinstance(expr.right_expr, expressions.ConstVarAccess) or \
+                isinstance(expr.right_expr, expressions.Binary) or \
+                isinstance(expr.right_expr, expressions.StructGet) or \
+                isinstance(expr.right_expr, expressions.Grouping) or \
+                isinstance(expr.right_expr, expressions.Unary) or \
+                isinstance(expr.right_expr, expressions.Logical):
+            right_side = expr.right_expr.accept(self)
+        elif isinstance(expr.right_expr, expressions.FunctionCall):
+            aux = expr.right_expr.accept(self)
+            if aux is None:
+                error_right = True
+            else:
+                if aux.tp == 'procedure':
+                    print(str(expr.token_operator.file_line) +
+                          ': Erro Semântico: Procedures não possuem retorno para serem usados em expressões!')
+                    return None
+                else:
+                    right_side = aux.data_type
+        else:
+            print(str(expr.token_operator.file_line) +
+                  ': Erro Semântico: Elemento de tipo não permitido em expressão!')
+        if not error_right and not error_left:
+            if left_side != 'boolean' or right_side != 'boolean':
+                print(str(expr.token_operator.file_line) +
+                      ': Erro Semântico: Expressões lógicas só podem ser usadas utilizando elementos de tipo booleano!')
+
 
     def visitUnaryExpr(self, expr):
         aux = expr.right_expr.accept(self)
@@ -295,7 +360,7 @@ class Visitor:
             return None
         elif var_pos[0].tp not in {'var', 'const'}:
             print(str(expr.token_name.file_line) +
-                  ': Erro Semântico: O identificador', expr.token_name.lexeme,  'não corresponde a uma variavel ou constante!')
+                  ': Erro Semântico: O identificador', expr.token_name.lexeme, 'não corresponde a uma variavel ou constante!')
             return None
         elif not expr.token_name.file_line >= var_pos[0].program_line:
             print(str(expr.token_name.file_line) +
@@ -549,31 +614,19 @@ class Visitor:
                           + stmt.tp_name.lexeme + '!')
 
     def visitReadStmt(self, stmt):
-        pass
+        for item in stmt.params:
+            item.accept(self)
 
     def visitPrePosIncDec(self, expr):
-        if isinstance(expr.variable, expressions.StructGet):
-            pass
-        elif isinstance(expr.variable, expressions.ConstVarAccess):
-            inc_pos = self.symbol_table.get_line(expr.variable.lexeme, expr.scope)
-            if not inc_pos:
-                print(str(expr.variable.file_line) + ': Erro Semântico: Tentativa de Inc/Dec uma variável que não existe!')
-            elif len(inc_pos) > 1:
-                print(str(expr.variable.file_line) + ': Erro Semântico: Nome de identificador indexando dois '
-                                                     'elementos distintos!')
-            elif inc_pos[0].tp != 'var':
-                print(str(expr.variable.file_line) + ': Erro Semântico: Identificador informado não corresponde a uma'
-                                                     ' variável, e sim a uma', inc_pos[0].tp + '!')
-            elif inc_pos[0].data_type not in {'int', 'real'}:
-                aux = inc_pos[0].data_type
-                if inc_pos[0].data_type not in {'string', 'boolean'}:
-                    aux = self.get_old_type(inc_pos[0].data_type, expr.scope)
-                    if aux and aux in {'int', 'real'}:
-                        return
-                print(str(expr.variable.file_line) + ': Erro Semântico: Tentativa de Inc/Dec em uma variavel de tipo primitivo',
-                      aux + '!')
-            elif len(inc_pos[0].value) == 0:
-                print(str(expr.variable.file_line) + ': Erro Semântico: Tentativa de Inc/Dec uma variavel não inicializada!')
+        if isinstance(expr.variable, expressions.ConstVarAccess):
+            inc_pos = self.symbol_table.get_line(expr.variable.token_name.lexeme, expr.scope)
+            if inc_pos and inc_pos[0].tp != 'var':
+                print(str(expr.variable.token_name.file_line) + ': Erro Semântico: Identificador informado não corresponde a uma'
+                                                                ' variável, e sim a uma', inc_pos[0].tp + '!')
+        data_type = expr.variable.accept(self)
+        if data_type is not None and data_type not in {'int', 'real'}:
+            print(str(expr.variable.token_name.file_line) + ': Erro Semântico: Tentativa de Inc/Dec em uma variavel de tipo primitivo',
+                  data_type + '!')
 
     def get_old_type(self, name, scope):
         name_pos1 = self.symbol_table.get_line(name, scope)

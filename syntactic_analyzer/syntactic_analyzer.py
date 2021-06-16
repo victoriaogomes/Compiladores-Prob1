@@ -1748,6 +1748,8 @@ class SyntacticAnalyzer:
                         temp.variable.struct_name = aux
                     elif isinstance(temp.variable, expr.ConstVarAccess):
                         temp.variable.token_name = aux
+                else:
+                    temp.variable = expr.ConstVarAccess(aux, self.get_scope())
             return temp
         elif self.tokens_list.lookahead().lexeme in {'global', 'local'}:
             print("VAI PARA SCOPE VARIABLES")
