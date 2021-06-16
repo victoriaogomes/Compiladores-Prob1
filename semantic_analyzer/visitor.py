@@ -114,7 +114,7 @@ class Visitor:
         aux = []
         if not func_pos:
             print(str(expr.func_exp.file_line) +
-                  ': Erro Semântico: Chamada a function/procedure \'' + expr.func_exp.lexeme + '\', a qual não existe!')
+                  ': Erro Semântico: Chamada a function/procedure \'' + expr.func_exp.lexeme + '\', o qual não existe!')
             return None
         elif len(func_pos) > 1:
             aux = self.check_overloading(func_pos, expr.func_exp.file_line, 'Chamada')
@@ -137,15 +137,18 @@ class Visitor:
                 aux.append(item.split('.')[0])
             if set(base) != set(aux):
                 print(str(expr.func_exp.file_line) +
-                      ': Erro Semântico: Chamada de função usando parâmetros de tipo incorreto! Esperava ' + ','.join(aux) + ', e recebi ' + ','.join(base))
+                      ': Erro Semântico: Chamada a função/procedure \'' + expr.func_exp.lexeme + '\' usando parâmetros de tipo incorreto! Esperava ' + ','.join(aux) + ', e recebi ' + ','.join(base))
         else:
             params_okay = False
-            for item in aux:
-                if set(item) == set(aux):
-                    params_okay = True
+            if len(aux) == 0 and len(base) == 0:
+                params_okay = True
+            else:
+                for item in aux:
+                    if set(item) == set(aux):
+                        params_okay = True
             if not params_okay:
                 print(str(expr.func_exp.file_line) +
-                      ': Erro Semântico: Chamada de função usando parâmetros de tipo incorreto!')
+                      ': Erro Semântico: Chamada a função/procedure \'' + expr.func_exp.lexeme + '\' usando parâmetros de tipo incorreto!')
         return func_pos[0]
 
     def visitStructGetExpr(self, expr):
