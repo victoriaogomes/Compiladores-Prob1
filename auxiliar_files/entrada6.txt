@@ -1,0 +1,12 @@
+
+
+var{
+    int vetor_int[10] = [];
+    int oto[5];
+    real varios[3];
+    string nomes[7] = ["Julia",]
+}
+
+procedure start(){
+
+}

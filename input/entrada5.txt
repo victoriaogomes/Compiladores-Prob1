@@ -2,12 +2,21 @@ const{
     int i = 0;
     real pi = 3.14;
 }
+procedure diz_algo(string mensagem){
+    print(mensagem);
+}
 
+procedure diz_algo(int i, int b, real b){
+    b++;
+    print(b);
+}
 
 procedure start(){
     const{
         real versaum = 3.7;
     }
+    diz_algo("oi");
+    diz_algo(1, 2, 5.0);
     global.i++;
     global.pi = 3.0 + 0.14;
     versaum = 3.7 + 2.0;
