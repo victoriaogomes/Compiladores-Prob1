@@ -220,7 +220,7 @@ class Visitor:
                     return None
                 elif not attr_ok:
                     print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Identificador',
-                          expr.attr_name.token_name.lexeme, 'indexa uma variavel inexistente no tipo de struct', expr.struct_name.token_name.lexeme + '!')
+                          expr.attr_name.token_name.lexeme, 'indexa uma variavel inexistente no tipo de struct de', expr.struct_name.token_name.lexeme + '!')
                     return None
                 if expr.attr_name.index_array:
                     self.check_index(expr.attr_name.index_array, expr.attr_name.token_name.file_line)
@@ -228,7 +228,7 @@ class Visitor:
                     self.check_index(expr.attr_name.index_matrix, expr.attr_name.token_name.file_line)
             else:
                 if line:
-                    attr_ok = self.check_attr(line, expr.struct_name.token_name.lexeme)
+                    attr_ok = self.check_attr(line, expr.attr_name.token_name.lexeme)
                     if attr_ok is None:
                         if not line2:
                             print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Identificador',
@@ -237,10 +237,10 @@ class Visitor:
                     elif not attr_ok:
                         if not line2:
                             print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Identificador',
-                                  expr.attr_name.token_name.lexeme, 'indexa uma variavel inexistente no tipo de struct', expr.struct_name.token_name.lexeme + '!')
+                                  expr.attr_name.token_name.lexeme, 'indexa uma variavel inexistente no tipo de struct de', expr.struct_name.token_name.lexeme + '!')
                             return None
                 if line2:
-                    attr_ok = self.check_attr(line2, expr.struct_name.token_name.lexeme)
+                    attr_ok = self.check_attr(line2, expr.attr_name.token_name.lexeme)
                     if attr_ok is None:
                         if not line:
                             print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Identificador',
@@ -249,7 +249,7 @@ class Visitor:
                     elif not attr_ok:
                         if not line:
                             print(str(expr.struct_name.token_name.file_line) + ': Erro Semântico: Identificador',
-                                  expr.attr_name.token_name.lexeme, 'indexa uma variavel inexistente no tipo de struct', expr.struct_name.token_name.lexeme + '!')
+                                  expr.attr_name.token_name.lexeme, 'indexa uma variavel inexistente no tipo de struct de', expr.struct_name.token_name.lexeme + '!')
                             return None
         elif isinstance(expr.attr_name, expressions.StructGet):
             return expr.attr_name.accept(self)
