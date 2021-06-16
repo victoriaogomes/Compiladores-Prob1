@@ -6,6 +6,16 @@ const{
     int chamander = 0;
 }
 
+struct Pessoa{
+    var{
+        string cpf;
+    }
+}
+
+var{
+    struct Pessoa bruno;
+}
+
 typedef struct Pessoa Person;
 typedef Person Humano;
 typedef Humano Human;
@@ -28,13 +38,12 @@ function int vontade(int vetor){
     var{
         int vontade;
         inteiro idade = 0;
-        struct Pessoa bruno;
     }
     ++Pessoa.i;
     idade = 11;
     Pessoa.cpf = "000.105.123-65";
     Pessoa1.Pessoa.cpf = "000.105.123-65";
-    global.Pessoa.cpf = "000.105.123-65";
+    global.bruno.cpf = "000.105.123-65";
     global.idade = 10;
     if(vontade == 0) then{
         vontade++;
@@ -44,9 +53,9 @@ function int vontade(int vetor){
     }
     return vontade;
 }
-function int retorna(int z){
+function Person retorna(int z){
     var{
-      struct Pessoa Pessoa1;
+      Person Pessoa1;
     }
     Pessoa1.cpf = "000.000.000-00";
     return Pessoa1;
@@ -58,7 +67,13 @@ procedure start() {
         real bobona = 10000;
         string p[30] = ["oi", 2, "Ola"];
         int x = 0;
+        struct Vicky xila;
     }
+    if(Bruno == "Legalzao" && Vicky == "Chatona") then{
+        print("Eh nois pivete");
+    }
+    xila.i = 22;
+    xila.i++;
     vontade(teste);
     vontade(bobona);
     vontade();

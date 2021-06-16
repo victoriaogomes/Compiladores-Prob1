@@ -1667,7 +1667,9 @@ class SyntacticAnalyzer:
             self.proc_content4()
         else:
             print("VAI PARA CODE")
-            self.proc_stmt.body.extend(self.code())
+            temp = self.code()
+            if temp is not None:
+                self.proc_stmt.body.extend(temp)
             if self.tokens_list.lookahead().lexeme == '}':
                 self.tokens_list.consume_token()
                 self.global_scope = True
@@ -1745,7 +1747,7 @@ class SyntacticAnalyzer:
             elif isinstance(temp, expr.PrePosIncDec):
                 if temp.variable:
                     if isinstance(temp.variable, expr.StructGet):
-                        temp.variable.struct_name = aux
+                        temp.variable.struct_name = expr.ConstVarAccess(aux, self.get_scope())
                     elif isinstance(temp.variable, expr.ConstVarAccess):
                         temp.variable.token_name = aux
                 else:

@@ -7,7 +7,7 @@ class Visitor:
         self.symbol_table = symbol_table
 
     def visitAssignExpr(self, expr):
-        temp = ''
+        file_line = 0
         aux = expr.expr.accept(self)
         if isinstance(expr.expr, expressions.FunctionCall):
             if aux is not None:
@@ -18,15 +18,21 @@ class Visitor:
                 else:
                     aux = aux.data_type
                     if aux not in {'int', 'string', 'real', 'boolean'}:
-                        aux = self.get_old_type(aux, -1)
+                        if aux.find('struct') != -1:
+                            aux = aux.split('.')[1]
+                        else:
+                            aux = self.get_old_type(aux, -1)
         if isinstance(expr.token, expressions.ConstVarAccess):
+            file_line = expr.token.token_name.file_line
             var_pos = self.symbol_table.get_line(expr.token.token_name.lexeme, expr.token.scope)
             if var_pos and var_pos[0].tp == 'const':
                 print(str(expr.token_operator.file_line) +
                       ': Erro Semântico: O valor armazenado em uma constante não pode ser alterado!')
+        elif isinstance(expr.token, expressions.StructGet):
+            file_line = expr.token.struct_name.token_name.file_line
         temp = expr.token.accept(self)
         if temp is not None and aux != temp:
-            print(str(expr.token.token_name.file_line) + ': Erro Semântico: Tentativa de atribuir um valor',
+            print(str(file_line) + ': Erro Semântico: Tentativa de atribuir um valor',
                   aux, 'a variável \'' + expr.token.token_name.lexeme + '\', que é do tipo primitivo', temp + '!')
             return None
 
@@ -202,7 +208,7 @@ class Visitor:
             return None
         if isinstance(expr.attr_name, expressions.ConstVarAccess):
             if line2 == '' and line == '':
-                tp_name = struct_pos[0].data_type.split('.')[1]
+                tp_name = struct_pos[0].name
                 tp_pos = self.symbol_table.get_line(tp_name, expr.struct_name.scope)
                 attr_ok = self.check_attr(tp_pos, expr.attr_name.token_name.lexeme)
                 if expr.struct_name.scope != -1 and (attr_ok is None or not attr_ok):
@@ -316,6 +322,9 @@ class Visitor:
             if left_side != 'boolean' or right_side != 'boolean':
                 print(str(expr.token_operator.file_line) +
                       ': Erro Semântico: Expressões lógicas só podem ser usadas utilizando elementos de tipo booleano!')
+            else:
+                return 'boolean'
+        return None
 
 
     def visitUnaryExpr(self, expr):
@@ -371,7 +380,11 @@ class Visitor:
             self.check_index(expr.index_matrix, expr.token_name.file_line)
         aux = var_pos[0].data_type
         if var_pos[0].data_type not in {'int', 'real', 'boolean', 'string'}:
-            aux = self.get_old_type(var_pos[0].data_type, expr.scope)
+            if aux not in {'int', 'string', 'real', 'boolean'}:
+                if aux.find('struct') != -1:
+                    aux = aux.split('.')[1]
+                else:
+                    aux = self.get_old_type(var_pos[0].data_type, expr.scope)
         return aux
 
     def visitFunctionStmt(self, stmt):
@@ -386,6 +399,9 @@ class Visitor:
                 print(str(stmt.return_expr.keyword.file_line) +
                       ': Erro Semântico: O tipo de retorno não bate com o esperado! Esperava:', stmt.return_tp.lexeme
                       + ', recebi:', tp)
+        else:
+            print(str(stmt.return_expr.keyword.file_line) +
+                  ': Erro Semântico: Retorno de tipo desconhecido!')
 
     def visitProcedureStmt(self, stmt):
         proc_pos = self.symbol_table.get_line(stmt.token_name.lexeme, -1)
@@ -430,7 +446,11 @@ class Visitor:
                 item.accept(self)
 
     def visitReturnfStmt(self, stmt):
-        return stmt.value.accept(self)
+        aux = stmt.value.accept(self)
+        if aux is not None and aux not in {'int', 'string', 'boolean', 'real'}:
+            temp = self.symbol_table.get_line(stmt.value.token_name.lexeme, stmt.value.scope)
+            return temp[0].data_type
+        return aux
 
     def visitVarStmt(self, stmt):
         var_pos = self.symbol_table.get_line(stmt.name, stmt.scope)
