@@ -24,6 +24,8 @@ class Visitor:
                             aux = self.get_old_type(aux, -1)
         if isinstance(expr.token, expressions.ConstVarAccess):
             file_line = expr.token.token_name.file_line
+            if expr.token.access_type == 'global':
+                expr.token.scope = -1
             var_pos = self.symbol_table.get_line(expr.token.token_name.lexeme, expr.token.scope)
             if var_pos and var_pos[0].tp == 'const':
                 print(str(expr.token.token_name.file_line) +
@@ -642,7 +644,9 @@ class Visitor:
 
     def visitPrePosIncDec(self, expr):
         if isinstance(expr.variable, expressions.ConstVarAccess):
-            inc_pos = self.symbol_table.get_line(expr.variable.token_name.lexeme, expr.scope)
+            if expr.variable.access_type == 'global':
+                expr.variable.scope = -1
+            inc_pos = self.symbol_table.get_line(expr.variable.token_name.lexeme, expr.variable.scope)
             if inc_pos and inc_pos[0].tp != 'var':
                 print(str(expr.variable.token_name.file_line) + ': Erro Semântico: Identificador informado não corresponde a uma'
                                                                 ' variável, e sim a uma', inc_pos[0].tp + '!')
