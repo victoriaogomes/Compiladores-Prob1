@@ -1,61 +1,43 @@
-// Teste do Barema
-/*
-    duplicidade de ides globais
-    duplicidade de ides locais
-    duplicidade de funcs e proceds (sobrecarga)
-    identificadores não declarados
-    att a consts
-    chamada de funcs/procedure
-    verificação de tipos em atribuições,
-    retorno de funções e expressões.
-    vetores, matrizes e structs.
-*/
 var{
-    int b;
-    real a;
-    string msg;
+    int i , j = a(), k = 10+(60);
 }
-
 const{
-    real axsdafa = 3.0;
+    string mensagem = "";
+    int chamander = 0;
 }
 
-function string transmitir(){
+struct Pessoa{
     var{
-        boolean testa = false;
-        string resultado;
+        string cpf;
     }
-    const{
-        boolean testa = true;
-    }
-    if (testa == true) then{
-        resultado = "Tudo certo";
-    }
-    else{
-        resultado = "Nada Bom";
-    }
-    return resultado;
 }
 
-function string transmitir(string mensagem){
-    return mensagem;
+var{
+    struct Pessoa bruno;
 }
-procedure start(){
+
+typedef struct Pessoa Person;
+
+function int vontade(int vetor){
     var{
-        string mensagem = "oi";
-        string mensagem = "Bem vindo";
-        int b;
+        int vontade;
+        inteiro idade = 0;
     }
-    const{
-        string mensagem = "vish, erro";
+    global.bruno.cpf = "000.105.123-65";
+
+    return vontade;
+}
+
+procedure start() {
+    var{
+        real vickyChatona[10];
+        real bobona = 10000;
+        string p[30] = ["oi", 2, "Ola"];
+        int x = 0;
+        struct Vicky xila;
     }
-    transmitir();
-    transmitir(mensagem);
-    transmitir("OI");
-    global.a = 3;
-    b = 0;
-    global.b = 0;
-    local.b++;
-    joana = "Meu nome eh joana";
-    print(joana);
+    if(Bruno == "Legalzao" && Vicky == "Chatona") then{
+        print("Eh nois pivete");
+    }
+
 }

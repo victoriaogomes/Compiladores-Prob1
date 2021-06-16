@@ -1,0 +1,14 @@
+const{
+    int i = 0;
+    real pi = 3.14;
+}
+
+
+procedure start(){
+    const{
+        real versaum = 3.7;
+    }
+    global.i++;
+    global.pi = 3.0 + 0.14;
+    versaum = 3.7 + 2.0;
+}

@@ -1,61 +1,43 @@
+var{
+    int i , j = a(), k = 10+(60);
+}
+const{
+    string mensagem = "";
+    int chamander = 0;
+}
 
-
-
-
-
-
-
-
-
-
-
+struct Pessoa{
+    var{
+        string cpf;
+    }
+}
 
 var{
-    int b;
-    real a;
-    string msg;
+    struct Pessoa bruno;
 }
 
-const{
-    real axsdafa = 3.0;
-}
+typedef struct Pessoa Person;
 
-function string transmitir(){
+function int vontade(int vetor){
     var{
-        boolean testa = false;
-        string resultado;
+        int vontade;
+        inteiro idade = 0;
     }
-    const{
-        boolean testa = true;
-    }
-    if (testa == true) then{
-        resultado = "Tudo certo";
-    }
-    else{
-        resultado = "Nada Bom";
-    }
-    return resultado;
+    global.bruno.cpf = "000.105.123-65";
+
+    return vontade;
 }
 
-function string transmitir(string mensagem){
-    return mensagem;
-}
-procedure start(){
+procedure start() {
     var{
-        string mensagem = "oi";
-        string mensagem = "Bem vindo";
-        int b;
+        real vickyChatona[10];
+        real bobona = 10000;
+        string p[30] = ["oi", 2, "Ola"];
+        int x = 0;
+        struct Vicky xila;
     }
-    const{
-        string mensagem = "vish, erro";
+    if(Bruno == "Legalzao" && Vicky == "Chatona") then{
+        print("Eh nois pivete");
     }
-    transmitir();
-    transmitir(mensagem);
-    transmitir("OI");
-    global.a = 3;
-    b = 0;
-    global.b = 0;
-    local.b++;
-    joana = "Meu nome eh joana";
-    print(joana);
+
 }
