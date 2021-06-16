@@ -26,7 +26,7 @@ class Visitor:
             file_line = expr.token.token_name.file_line
             var_pos = self.symbol_table.get_line(expr.token.token_name.lexeme, expr.token.scope)
             if var_pos and var_pos[0].tp == 'const':
-                print(str(expr.token_operator.file_line) +
+                print(str(expr.token.token_name.file_line) +
                       ': Erro Semântico: O valor armazenado em uma constante não pode ser alterado!')
         elif isinstance(expr.token, expressions.StructGet):
             file_line = expr.token.struct_name.token_name.file_line
