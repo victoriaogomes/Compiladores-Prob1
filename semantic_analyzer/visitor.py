@@ -144,7 +144,7 @@ class Visitor:
                 params_okay = True
             else:
                 for item in aux:
-                    if set(item) == set(aux):
+                    if set(item) == set(base):
                         params_okay = True
             if not params_okay:
                 print(str(expr.func_exp.file_line) +
@@ -728,7 +728,7 @@ class Visitor:
                 if file_line > func_pos[0].program_line or tp == 'Chamada':
                     print(str(file_line) + ': Erro Semântico: ' + tp + ' de Função/Procedure duplicada -> Possível sobrecarga usada de forma errada!')
                     return None
-                return all_args
+            return all_args
         return None
 
     def check_attr(self, tp_pos, lexeme):
