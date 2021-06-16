@@ -1,0 +1,61 @@
+// Teste do Barema
+/*
+    duplicidade de ides globais
+    duplicidade de ides locais
+    duplicidade de funcs e proceds (sobrecarga)
+    identificadores não declarados
+    att a consts
+    chamada de funcs/procedure
+    verificação de tipos em atribuições,
+    retorno de funções e expressões.
+    vetores, matrizes e structs.
+*/
+var{
+    int b;
+    real a;
+    string msg;
+}
+
+const{
+    real axsdafa = 3.0;
+}
+
+function string transmitir(){
+    var{
+        boolean testa = false;
+        string resultado;
+    }
+    const{
+        boolean testa = true;
+    }
+    if (testa == true) then{
+        resultado = "Tudo certo";
+    }
+    else{
+        resultado = "Nada Bom";
+    }
+    return resultado;
+}
+
+function string transmitir(string mensagem){
+    return mensagem;
+}
+procedure start(){
+    var{
+        string mensagem = "oi";
+        string mensagem = "Bem vindo";
+        int b;
+    }
+    const{
+        string mensagem = "vish, erro";
+    }
+    transmitir();
+    transmitir(mensagem);
+    transmitir("OI");
+    global.a = 3;
+    b = 0;
+    global.b = 0;
+    local.b++;
+    joana = "Meu nome eh joana";
+    print(joana);
+}
