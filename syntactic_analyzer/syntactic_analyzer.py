@@ -156,7 +156,7 @@ class SyntacticAnalyzer:
             self.tokens_list.consume_token()
             self.Line.tp = 'procedure'
             print("VAI PARA PROC CHOICE")
-            self.program.append(self.proc_choice())
+            self.proc_choice()
         else:
             print("ERRO NO ESTADO METHODS!!!!!")
             self.error_treatment('METHODS', 'function ou procedure')
@@ -169,6 +169,7 @@ class SyntacticAnalyzer:
             self.Line.name = 'start'
             print("VAI PRA START PROCEDURE")
             self.start_procedure()
+            self.program.append(self.proc_stmt)
             if self.tokens_list.lookahead().lexeme != 'endOfFile($)':
                 print("ERRO NO PROC CHOICE NOT END OF FILE")
                 self.output_list.add_token('ERRO SINTATICO: NESSA LINGUAGEM, ESPERA-SE QUE'
@@ -178,12 +179,12 @@ class SyntacticAnalyzer:
         elif self.tokens_list.lookahead().lexeme_type == 'IDE':
             print("VAI PRA PROCEDURE")
             self.procedure()
+            self.program.append(self.proc_stmt)
             print("VAI PRA METHODS")
             self.methods()
         else:
             print("ERRO NO ESTADO PROC_CHOICE!!!!!")
             self.error_treatment('PROCCHOICE', 'start ou Identificador')
-        return self.proc_stmt
 
 # =====================================================================================================================
 # ====================================================== Data Types ===================================================

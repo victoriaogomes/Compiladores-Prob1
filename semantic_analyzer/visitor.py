@@ -33,7 +33,7 @@ class Visitor:
         elif isinstance(expr.token, expressions.StructGet):
             file_line = expr.token.struct_name.token_name.file_line
         temp = expr.token.accept(self)
-        if temp is not None and aux != temp:
+        if temp is not None and aux is not None and aux != temp:
             print(str(file_line) + ': Erro Semântico: Tentativa de atribuir um valor',
                   aux, 'a variável \'' + expr.token.token_name.lexeme + '\', que é do tipo primitivo', temp + '!')
             return None
@@ -114,6 +114,7 @@ class Visitor:
     def visitFCallExpr(self, expr):
         func_pos = self.symbol_table.get_line(expr.func_exp.lexeme, -1)
         aux = []
+        f_index = 0
         if not func_pos:
             print(str(expr.func_exp.file_line) +
                   ': Erro Semântico: Chamada a function/procedure \'' + expr.func_exp.lexeme + '\', o qual não existe!')
@@ -140,18 +141,21 @@ class Visitor:
             if set(base) != set(aux):
                 print(str(expr.func_exp.file_line) +
                       ': Erro Semântico: Chamada a função/procedure \'' + expr.func_exp.lexeme + '\' usando parâmetros de tipo incorreto! Esperava ' + ','.join(aux) + ', e recebi ' + ','.join(base))
+                return None
         else:
             params_okay = False
             if len(aux) == 0 and len(base) == 0:
                 params_okay = True
             else:
-                for item in aux:
-                    if set(item) == set(base):
+                for i in range(0, len(aux)):
+                    if set(aux[i]) == set(base):
                         params_okay = True
+                        f_index = i
             if not params_okay:
                 print(str(expr.func_exp.file_line) +
                       ': Erro Semântico: Chamada a função/procedure \'' + expr.func_exp.lexeme + '\' usando parâmetros de tipo incorreto!')
-        return func_pos[0]
+                return None
+        return func_pos[f_index]
 
     def visitStructGetExpr(self, expr):
         if expr.struct_name.access_type == 'global':
@@ -331,7 +335,6 @@ class Visitor:
                 return 'boolean'
         return None
 
-
     def visitUnaryExpr(self, expr):
         aux = expr.right_expr.accept(self)
         if isinstance(expr.right_expr, expressions.FunctionCall):
@@ -394,8 +397,15 @@ class Visitor:
 
     def visitFunctionStmt(self, stmt):
         func_pos = self.symbol_table.get_line(stmt.token_name.lexeme, -1)
+        resp = ''
         if len(func_pos) > 1:
-            self.check_overloading(func_pos, stmt.token_name.file_line, 'Declaração')
+            resp = self.check_overloading(func_pos, stmt.token_name.file_line, 'Declaração')
+            if resp is not None:
+                for func in func_pos:
+                    if func.program_line == stmt.token_name.file_line:
+                        if len(set([item for item in func.params if len(self.count_itens(item, func.params)) > 1])) >= 1:
+                            print(str(stmt.token_name.file_line) +
+                                  ': Erro Semântico: Uma função não pode ter dois parâmetros com o mesmo nome')
         for line in stmt.body:
             line.accept(self)
         tp = stmt.return_expr.accept(self)
@@ -410,8 +420,15 @@ class Visitor:
 
     def visitProcedureStmt(self, stmt):
         proc_pos = self.symbol_table.get_line(stmt.token_name.lexeme, -1)
+        resp = ''
         if len(proc_pos) > 1:
-            self.check_overloading(proc_pos, stmt.token_name.file_line, 'Declaração')
+            resp = self.check_overloading(proc_pos, stmt.token_name.file_line, 'Declaração')
+        if resp is not None:
+            for proc in proc_pos:
+                if proc.program_line == stmt.token_name.file_line:
+                    if len(set([item for item in proc.params if len(self.count_itens(item, proc.params)) > 1])) >= 1:
+                        print(str(stmt.token_name.file_line) +
+                              ': Erro Semântico: Um procedure não pode ter dois parâmetros com o mesmo nome')
         for line in stmt.body:
             line.accept(self)
 
@@ -743,3 +760,7 @@ class Visitor:
         else:
             return None
         return False
+
+    def count_itens(self, search_key, params):
+        search_key = search_key.split('.')[1]
+        return set([item for item in params if item.endswith('.' + search_key)])
