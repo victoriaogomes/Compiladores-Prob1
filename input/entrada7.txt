@@ -1,0 +1,36 @@
+// alguns outros testes com funcs e procedures
+
+var{
+    int b;
+    real a;
+    string msg;
+}
+
+const{
+    real ax = 3.0;
+}
+
+function string transmitir(){
+    var{
+        boolean testa = false;
+        string resultado;
+    }
+    if (testa == true) then{
+        resultado = "Tudo certo";
+    }
+    else{
+        resultado = "Nada Bom";
+    }
+    return global.msg;
+}
+
+
+procedure start(){
+    var{
+        int algo;
+    }
+}
+
+procedure start(int i){
+    print("oi");
+}

@@ -1,0 +1,20 @@
+struct pessoa{
+    var{
+        int idade;
+        string nome;
+    }
+}
+var{
+    struct pessoa bruno;
+}
+
+procedure printa(string nome, int idade){
+    print("Seu nome eh ", nome, " e vc tem ", idade, " anos");
+}
+
+procedure start(){
+    global.bruno.nome = "Bruno";
+    global.bruno.idade = 23;
+    printa(global.bruno.nome, global.bruno.idade);
+
+}

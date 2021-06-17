@@ -34,7 +34,7 @@ function string transmitir(){
     else{
         resultado = "Nada Bom";
     }
-    return resultado;
+    return global.msg;
 }
 
 function string transmitir(string mensagem){

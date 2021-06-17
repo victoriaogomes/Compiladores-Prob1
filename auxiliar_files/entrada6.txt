@@ -12,4 +12,5 @@ procedure start(){
         int idade;
     }
     idade = 10.0;
+
 }

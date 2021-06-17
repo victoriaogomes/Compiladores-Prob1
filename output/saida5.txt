@@ -90,12 +90,12 @@
 21 ART +
 21 NRO 0.14
 21 DEL ;
-21 Erro Semantico: O valor armazenado em uma constante nao pode ser alterado! 
+21 Erro Semantico: pi eh uma constante. O valor armazenado em uma constante nao pode ser alterado! 
 22 IDE versaum
 22 REL =
 22 NRO 3.7
 22 ART +
 22 NRO 2.0
 22 DEL ;
-22 Erro Semantico: O valor armazenado em uma constante nao pode ser alterado! 
+22 Erro Semantico: versaum eh uma constante. O valor armazenado em uma constante nao pode ser alterado! 
 23 DEL }

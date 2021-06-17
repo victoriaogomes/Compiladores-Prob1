@@ -66,7 +66,9 @@
 35 DEL ;
 36 DEL }
 37 PRE return
-37 IDE resultado
+37 PRE global
+37 DEL .
+37 IDE msg
 37 DEL ;
 38 DEL }
 40 PRE function

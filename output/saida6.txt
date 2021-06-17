@@ -45,4 +45,4 @@
 14 NRO 10.0
 14 DEL ;
 14 Erro Semantico: Tentativa de atribuir um valor real a variavel 'idade', que e do tipo primitivo int! 
-15 DEL }
+16 DEL }
