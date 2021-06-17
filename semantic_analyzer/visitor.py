@@ -649,13 +649,13 @@ class Visitor:
                 self.add_error(str(stmt.tp_name.file_line) + ':Erro Semantico:Ja existem outros elementos indexados com esse identificador:'
                                + stmt.tp_name.lexeme + '!')
             else:
-                if new_type_pos is not None and len(new_type_pos) > 1 and \
-                        stmt.tp_name.file_line > new_type_pos[0].program_line:
-                    self.add_error(str(stmt.tp_name.file_line) + ':Erro Semantico:Ja existem outros elementos indexados com esse identificador:'
+                if new_type_pos is not None and len(new_type_pos) > 1:
+                    if stmt.tp_name.file_line > new_type_pos[0].program_line:
+                        self.add_error(str(stmt.tp_name.file_line) + ':Erro Semantico:Ja existem outros elementos indexados com esse identificador:'
                                    + stmt.tp_name.lexeme + '!')
-                elif new_type_pos2 is not None and len(new_type_pos2) > 1 and \
-                        stmt.tp_name.file_line > new_type_pos2[0].program_line:
-                    self.add_error(str(stmt.tp_name.file_line) + ':Erro Semantico:Ja existem outros elementos indexados com esse identificador:'
+                elif new_type_pos2 is not None and len(new_type_pos2) > 1:
+                    if stmt.tp_name.file_line > new_type_pos2[0].program_line:
+                        self.add_error(str(stmt.tp_name.file_line) + ':Erro Semantico:Ja existem outros elementos indexados com esse identificador:'
                                    + stmt.tp_name.lexeme + '!')
         else:
             typedef_pos = self.symbol_table.get_line(aux, stmt.scope)
