@@ -138,6 +138,7 @@ class SyntacticAnalyzer:
                                            + ' O ARQUIVO FINALIZE APOS O PROCEDURE START. CODIGOS'
                                            + ' APOS O PROCEDURE START NAO SAO ANALISADOS SINTATICAMENTE', '',
                                            self.tokens_list.lookahead().file_line)
+                self.error = True
         elif self.tokens_list.lookahead().lexeme_type == 'IDE':
             self.procedure()
             self.program.append(self.proc_stmt)
