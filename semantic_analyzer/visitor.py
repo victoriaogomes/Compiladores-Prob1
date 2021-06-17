@@ -388,9 +388,17 @@ class Visitor:
             self.add_error(str(expr.token_name.file_line) +
                            ':Erro Semantico:Tentativa de acesso a variavel/constante ' + expr.token_name.lexeme + ' ainda nao declarada!')
         if expr.index_array:
-            self.check_index(expr.index_array, expr.token_name.file_line)
+            if var_pos[0].indexes[0] is None:
+                self.add_error(str(expr.token_name.file_line) +
+                               ':Erro Semantico:Tentativa de indexar a variavel/constante ' + expr.token_name.lexeme + ' como se fosse um vetor, sendo que ela nao eh!')
+            else:
+                self.check_index(expr.index_array, expr.token_name.file_line)
         if expr.index_matrix:
-            self.check_index(expr.index_matrix, expr.token_name.file_line)
+            if var_pos[0].indexes[1] is None:
+                self.add_error(str(expr.token_name.file_line) +
+                               ':Erro Semantico:Tentativa de indexar a variavel/constante ' + expr.token_name.lexeme + ' como se fosse uma matriz, sendo que ela nao eh!')
+            else:
+                self.check_index(expr.index_matrix, expr.token_name.file_line)
         aux = var_pos[0].data_type
         if var_pos[0].data_type not in {'int', 'real', 'boolean', 'string'}:
             if aux not in {'int', 'string', 'real', 'boolean'}:
