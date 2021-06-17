@@ -128,16 +128,16 @@ for i in range(len(lista_arquivos)):  # Para cada arquivo presente no folder inp
                                                                                              'erros lexicos\n')
     analyzer = s_analyzer.SyntacticAnalyzer(tableList[-1])
     ast = analyzer.start()
-    filesManager.write_symbol_table(analyzer.output_list.get_tokens(), lista_arquivos[i])
     print('--- Conclusão da análise sintática do arquivo', lista_arquivos[i])
     print('Foram encontrados erros sintaticos\n') if analyzer.error else \
         print('Não foram encontrados erros sintaticos\n')
+    error_list = analyzer.output_list
     if not analyzer.error:
-        semantic = semantic_analyzer.SemanticAnalyzer(analyzer.global_table, ast)
-        semantic.analyze()
+        semantic = semantic_analyzer.SemanticAnalyzer(analyzer.global_table, ast, error_list)
+        error_list = semantic.analyze()
         print('--- Conclusão da análise semântica do arquivo', lista_arquivos[i])
     else:
         print('--- Devido a presença de erros sintáticos, a análise semântica do arquivo', lista_arquivos[i], 'não foi realizada')
-
+    filesManager.write_symbol_table(error_list.get_tokens(), lista_arquivos[i])
 # filesManager.clean_folder('auxiliar_files')  # Limpa o folder com arquivos auxiliares que foram criados para a análise
 lista_arquivos = filesManager.list_files('auxiliar_files')

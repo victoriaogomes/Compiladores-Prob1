@@ -37,14 +37,17 @@
 9 IDE b
 9 DEL )
 9 DEL {
+9 Erro Semantico: Um procedure nao pode ter dois parametros com o mesmo nome 
 10 IDE b
 10 ART ++
 10 DEL ;
+10 Erro Semantico: Identificador b indexa 2 variaveis distintas! 
 11 PRE print
 11 DEL (
 11 IDE b
 11 DEL )
 11 DEL ;
+11 Erro Semantico: Identificador b indexa 2 variaveis distintas! 
 12 DEL }
 14 PRE procedure
 14 PRE start
@@ -78,6 +81,7 @@
 20 IDE i
 20 ART ++
 20 DEL ;
+20 Erro Semantico: Identificador informado nao corresponde a uma variavel, e sim a uma const! 
 21 PRE global
 21 DEL .
 21 IDE pi
@@ -86,10 +90,12 @@
 21 ART +
 21 NRO 0.14
 21 DEL ;
+21 Erro Semantico: O valor armazenado em uma constante nao pode ser alterado! 
 22 IDE versaum
 22 REL =
 22 NRO 3.7
 22 ART +
 22 NRO 2.0
 22 DEL ;
+22 Erro Semantico: O valor armazenado em uma constante nao pode ser alterado! 
 23 DEL }

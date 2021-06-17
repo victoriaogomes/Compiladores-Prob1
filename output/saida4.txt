@@ -42,6 +42,7 @@
 29 REL =
 29 PRE true
 29 DEL ;
+29 Erro semantico: Ja existe outro elemento indexado com esse identificador! 
 30 DEL }
 31 PRE if
 31 DEL (
@@ -51,6 +52,7 @@
 31 DEL )
 31 PRE then
 31 DEL {
+31 Erro Semantico: Identificador testa indexa 2 variaveis distintas! 
 32 IDE resultado
 32 REL =
 32 CAD "Tudo certo"
@@ -96,6 +98,7 @@
 46 REL =
 46 CAD "Bem vindo"
 46 DEL ;
+46 Erro semantico: Ja existe outro elemento indexado com esse identificador! 
 47 PRE int
 47 IDE b
 47 DEL ;
@@ -107,6 +110,7 @@
 50 REL =
 50 CAD "vish, erro"
 50 DEL ;
+50 Erro semantico: Ja existe outro elemento indexado com esse identificador! 
 51 DEL }
 52 IDE transmitir
 52 DEL (
@@ -117,6 +121,8 @@
 53 IDE mensagem
 53 DEL )
 53 DEL ;
+53 Erro Semantico: Identificador mensagem indexa 3 variaveis distintas! 
+53 Erro Semantico: Chamada a funçao/procedure 'transmitir' usando parametros de tipo incorreto! 
 54 IDE transmitir
 54 DEL (
 54 CAD "OI"
@@ -128,6 +134,7 @@
 55 REL =
 55 NRO 3
 55 DEL ;
+55 Erro Semantico: Tentativa de atribuir um valor int a variavel 'a', que e do tipo primitivo real! 
 56 IDE b
 56 REL =
 56 NRO 0
@@ -147,9 +154,11 @@
 59 REL =
 59 CAD "Meu nome eh joana"
 59 DEL ;
+59 Erro Semantico: Tentativa de acessar a variavel/constante 'joana', que nao existe! 
 60 PRE print
 60 DEL (
 60 IDE joana
 60 DEL )
 60 DEL ;
+60 Erro Semantico: Tentativa de acessar a variavel/constante 'joana', que nao existe! 
 61 DEL }

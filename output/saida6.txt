@@ -5,11 +5,7 @@
 4 DEL [
 4 NRO 10
 4 DEL ]
-4 REL =
-4 DEL [
-4 DEL ]
 4 DEL ;
-4 ERRO SINTATICO ESPERAVA: ! ou true ou false ou global ou local ou ( ou Numero ou Identificador ou Cadeira de Caracteres E RECEBI: ]
 5 PRE int
 5 IDE oto
 5 DEL [
@@ -30,14 +26,23 @@
 7 REL =
 7 DEL [
 7 CAD "Julia"
-7 DEL ,
 7 DEL ]
-7 ERRO SINTATICO ESPERAVA: ! ou true ou false ou global ou local ou ( ou Numero ou Identificador ou Cadeira de Caracteres E RECEBI: ]
+7 DEL ;
 8 DEL }
-8 ERRO SINTATICO ESPERAVA: , ou ; E RECEBI: }
 10 PRE procedure
 10 PRE start
 10 DEL (
 10 DEL )
 10 DEL {
-12 DEL }
+11 PRE var
+11 DEL {
+12 PRE int
+12 IDE idade
+12 DEL ;
+13 DEL }
+14 IDE idade
+14 REL =
+14 NRO 10.0
+14 DEL ;
+14 Erro Semantico: Tentativa de atribuir um valor real a variavel 'idade', que e do tipo primitivo int! 
+15 DEL }

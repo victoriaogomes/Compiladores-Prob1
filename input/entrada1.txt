@@ -24,7 +24,6 @@ function int vontade(int vetor){
         inteiro idade = 0;
     }
     global.bruno.cpf = "000.105.123-65";
-
     return vontade;
 }
 
