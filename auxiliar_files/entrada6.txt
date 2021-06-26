@@ -1,16 +1,39 @@
+const { int bca = 10; }
+
+var { int abc; }
 
 
-var{
-    int vetor_int[10];
-    int oto[5];
-    real varios[3];
-    string nomes[7] = ["Julia"];
+procedure imprimir (string msg) {
+	
 }
 
-procedure start(){
-    var{
-        int idade;
-    }
-    idade = 10.0;
+function real calcula (real x, real j) {
+	var {
+		string msg1, msg2;
+		real resultado;
+	}		
+	imprimir(msg1, msg2);  		
+	return resultado;
+}
 
+function real calcula_aumento_bolsa (real bolsa, real juros) {
+	var {
+		real valor; 
+	}	
+	return valor;
+}
+
+procedure start ( ) {
+	var {
+		real novo_valor, valor_bolsa, tx_juros, resultado;
+		int quantidade;
+	}
+	
+	resultado = calcula_aumento_bolsa(valor_bolsa, tx_juros);
+
+	resultado = calcula_aumento_bolsa(valor_bolsa); 		 
+	
+	resultado = calcula_aumento_bolsa(quantidade, tx_juros); 
+	
+	resultado = calcula_aumento(valor_bolsa, tx_juros); 	 
 }

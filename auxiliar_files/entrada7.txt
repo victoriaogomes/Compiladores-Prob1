@@ -1,36 +1,27 @@
-
-
-var{
-    int b;
-    real a;
-    string msg;
+const {
+	int a = 10, d = 20;
+	real b = 22.2;
+	string c = "teste tipo";
 }
 
-const{
-    real ax = 3.0;
+var { int abc; }
+
+function real somar (real x, real y) {
+	var { real result; }
+		
+	result = x + y + a;  
+			
+	return result;
+}	
+
+function string imprimir (string msg) {
+	var { int b; }
+	
+	b = msg;  	 
+		
+	return b;    
 }
 
-function string transmitir(){
-    var{
-        boolean testa = false;
-        string resultado;
-    }
-    if (testa == true) then{
-        resultado = "Tudo certo";
-    }
-    else{
-        resultado = "Nada Bom";
-    }
-    return global.msg;
-}
-
-
-procedure start(){
-    var{
-        int algo;
-    }
-}
-
-procedure start(int i){
-    print("oi");
+procedure start ( ) { 
+	
 }

@@ -1,42 +1,51 @@
-var{
-    int i , j = a(), k = 10+(60);
-}
-const{
-    string mensagem = "";
-    int chamander = 0;
-}
+const { 
+	int max1 = 10, max2 = 20;  
+		
+	string msg1 = "mensagem teste";   
+		
+	boolean flag1 = true;
+	
+	real max2 = 200.0;  
 
-struct Pessoa{
-    var{
-        string cpf;
-    }
+	int msg1 = 1;       
 }
 
-var{
-    struct Pessoa bruno;
+var { 
+	int max3, max4;  
+		
+	string msg2;
+		
+	boolean flag2;
+	
+	real max4;      
+
+	int msg2;       
+	
+	
 }
 
-typedef struct Pessoa Person;
+struct pessoa {
+		var {
+			string nome;
+			string cpf;
+			int idade;		
+			string rua;
+			int nro;
+			string cep;
+			string cidade;
+			string estado[2];
+		}		
+	}
+			
+	struct aluno extends pessoa {
+		var {
+			string nome;	
+			string matricula;
+			string disciplinas[10];
+			real notas[10];
+		}
+	}
 
-function int vontade(int vetor){
-    var{
-        int vontade;
-        inteiro idade = 0;
-    }
-    global.bruno.cpf = "000.105.123-65";
-    return vontade;
-}
-
-procedure start() {
-    var{
-        real vickyChatona[10];
-        real bobona = 10000;
-        string p[30] = ["oi", 2, "Ola"];
-        int x = 0;
-        struct Vicky xila;
-    }
-    if(Bruno == "Legalzao" && Vicky == "Chatona") then{
-        print("Eh nois pivete");
-    }
-
+procedure start ( ) { 
+	
 }

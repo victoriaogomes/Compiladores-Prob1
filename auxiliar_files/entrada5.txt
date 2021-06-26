@@ -1,23 +1,19 @@
-const{
-    int i = 0;
-    real pi = 3.14;
-}
-procedure diz_algo(string mensagem){
-    print(mensagem);
+const {
+	int max1 = 10; 
+
+	string msg = "mensagem teste";  
+
+	real salario = 998.00;
 }
 
-procedure diz_algo(int i, int b, real b){
-    b++;
-    print(b);
-}
+var { int abc; }
 
-procedure start(){
-    const{
-        real versaum = 3.7;
-    }
-    diz_algo("oi");
-    diz_algo(1, 2, 5.0);
-    global.i++;
-    global.pi = 3.0 + 0.14;
-    versaum = 3.7 + 2.0;
-}
+procedure start ( ) {
+	var { int a; }
+	
+	max1 = 100;  			
+	
+	msg = "isso nao pode";  
+	
+	salario = salario + 9.99; 
+} 

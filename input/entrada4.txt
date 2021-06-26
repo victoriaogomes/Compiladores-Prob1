@@ -1,61 +1,44 @@
-// Teste do Barema
-/*
-    duplicidade de ides globais
-    duplicidade de ides locais
-    duplicidade de funcs e proceds (sobrecarga)
-    identificadores não declarados
-    att a consts
-    chamada de funcs/procedure
-    verificação de tipos em atribuições,
-    retorno de funções e expressões.
-    vetores, matrizes e structs.
-*/
-var{
-    int b;
-    real a;
-    string msg;
+const {
+	int max1 = 10; 
+	
+	string msg1 = "mensagem teste";  
+	
+	boolean flag1 = true;
 }
 
-const{
-    real axsdafa = 3.0;
+var { 
+	int max2;  
+		
+	string msg2;
+		
+	boolean flag2;
 }
 
-function string transmitir(){
-    var{
-        boolean testa = false;
-        string resultado;
-    }
-    const{
-        boolean testa = true;
-    }
-    if (testa == true) then{
-        resultado = "Tudo certo";
-    }
-    else{
-        resultado = "Nada Bom";
-    }
-    return global.msg;
+struct pessoa {
+	var {
+		string nome;
+		string cpf;
+		int idade;		
+		string rua;
+	}		
 }
 
-function string transmitir(string mensagem){
-    return mensagem;
+procedure pessoa (real x, int j) {
+	var {
+		string nome, endereco;
+		int idade;
+		real salario, despesa;
+		pessoa obj;
+	}	
+
+	idade = max3;   // erro01: id "max3" nao declarado
+
+	valor = max1;   // erro02: id "valor" nao declarado
+	
+	pessoa.obj.estado = "Bahia";  // erro03: id "estado" nao declarado
+
 }
-procedure start(){
-    var{
-        string mensagem = "oi";
-        string mensagem = "Bem vindo";
-        int b;
-    }
-    const{
-        string mensagem = "vish, erro";
-    }
-    transmitir();
-    transmitir(mensagem);
-    transmitir("OI");
-    global.a = 3;
-    b = 0;
-    global.b = 0;
-    local.b++;
-    joana = "Meu nome eh joana";
-    print(joana);
+
+procedure start ( ) {
+	
 }

@@ -1,20 +1,33 @@
-struct pessoa{
-    var{
-        int idade;
-        string nome;
-    }
-}
-var{
-    struct pessoa bruno;
+const {
+	int a = 10, d = 20;
+	real b = 22.2;	
 }
 
-procedure printa(string nome, int idade){
-    print("Seu nome eh ", nome, " e vc tem ", idade, " anos");
+var {
+	int abc;
 }
 
-procedure start(){
-    global.bruno.nome = "Bruno";
-    global.bruno.idade = 23;
-    printa(global.bruno.nome, global.bruno.idade);
+struct pessoa {
+		var {
+			string nome;
+			string cpf;
+			int idade;	
+			real notas[10];
+		}		
+	}
 
+procedure start ( ) { 
+	var { 
+		pessoa obj; 
+		int matriz1[10][10];
+		int matriz2[10][10];
+	}	
+	
+	obj.idade = b;   		 
+	
+	matriz1[1] = obj.cpf;    
+	
+	matriz1 = matriz2;
+	
+	obj.notas[a] = 10;		
 }

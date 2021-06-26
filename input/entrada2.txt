@@ -1,20 +1,22 @@
-// Testes de struct
-struct roda{
-    var{
-        real raio;
-        string material;
-        real preco;
-    }
+const { int x = 10; }
+var { int abc; }
+
+procedure teste ( ) {
+	var {
+		int max3, max4;  
+		
+		string msg2;
+		
+		boolean flag;
+	
+		real max4;  // erro01: variavel duplicada
+
+		int msg2;   // erro02: variavel duplicada
+		
+		int flag;   // erro03: variavel duplicada
+	}
 }
 
-typedef struct roda rodas;
-procedure start(){
-    var{
-        rodas estoque[10];
-        struct roda rods[2];
-    }
-    estoque[0].raio = 15.5;
-    estoque[3].preco = 250.0;
-    rods[0].raio = 15.5;
-
+procedure start ( ) { 
+	
 }
